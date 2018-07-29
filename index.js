@@ -1,60 +1,158 @@
-const access_token = require('./common/access_token');
+//const get_alert = require('./common/get_alert');
+const fs = require('fs');
+const readline = require('readline');
+const {google} = require('googleapis');
 const _ = require('lodash');
-var axios = require('axios');
-let mostRecent = 0;
 
-var getAlertList = function(){
-//	console.log(`\n### ${access_token} ### \n`);
-	if (access_token) {
-//		console.log(`Most recent id is = ${mostRecent}`);
-		axios.defaults.headers.common['Authorization'] = "Bearer " + access_token;
-		axios.get('https://access.active911.com/interface/open_api/api/alerts/', {
-			alert_days: 1,
-		})
-		.then(response => {
-			const { id } = response.data.message.alerts[0];
-	//		console.log(`id = ${id} \n`);
-			if (id && id != mostRecent) {
-				mostRecent = id;
-				getSingleAlert(id);
-			}
-		})
-		.catch(error => {
-			console.log(error);
-		});
+const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+const TOKEN_PATH = 'token.json';
 
+async function getAlertList() {
+	try {
+	return new Promise ((resolve, reject) => {
 
-
-	};
-};
-
-var getSingleAlert = function(passedId) {
-//	console.log(`here with ${passedId} \n`)
-	axios.get(`https://access.active911.com/interface/open_api/api/alerts/${passedId}`)
-	.then(response => {
-		//console.log(`Alert Response = ${_.keysIn(response.data.message.alert)}`);
-		const { id, cross_street, cad_code, city, description, address, details } = response.data.message.alert;
-		var str = description
-		var splitted = str.split(' -', 1);
-		if (address.includes('I 76') || address.includes('I 81')) {
-			var addressSplit = address.split('  ', 2);
-			tempAddress = `${addressSplit[0]} ${addressSplit[1]}`;
-			addressSplit = tempAddress.split(' ', 4)
-			addressSplit = `${addressSplit[0]} ${addressSplit[1]}${addressSplit[2]} ${addressSplit[3]}`;
-		}
-		else {
-		var addressSplit = address.replace(/[0-9]/g, '');
-		}
-		var phrase = `Inc# ${cad_code} -- Report of ${splitted} -- ${addressSplit} near ${cross_street} in ${city}`;
-		console.log(phrase);
-		var codeIndex = details.indexOf('CODE: ');
-		var codeSlice = details.slice(codeIndex + 6, codeIndex + 12);
-		console.log(`${details} \n ${codeIndex} \n \n ${codeSlice}`);
-	})
-	.catch(error => {
-		console.log(error);
+	fs.readFile('credentials.json', async function (err, content) {
+		if (err) return console.log('Error loading client secret file:', err);
+		// Authorize a client with credentials, then call the Gmail API.
+		let x = await authorize(JSON.parse(content), listLabels);
+		resolve(x);
 	});
-};
+});
 
-	getAlertList();
-	setInterval(getAlertList, 150000);
+} catch(err) {
+	console.log(err);
+	}
+}
+
+/**
+* Create an OAuth2 client with the given credentials, and then execute the
+* given callback function.
+* @param {Object} credentials The authorization client credentials.
+* @param {function} callback The callback to call with the authorized client.
+*/
+async function authorize(credentials, callback) {
+	try {
+		return new Promise ((resolve, reject) => {
+
+	const {client_secret, client_id, redirect_uris} = credentials.installed;
+	const oAuth2Client = new google.auth.OAuth2(
+		client_id, client_secret, redirect_uris[0]);
+
+		// Check if we have previously stored a token.
+		fs.readFile(TOKEN_PATH, async function (err, token) {
+		//	if (err) reject getNewToken(oAuth2Client, callback);
+			oAuth2Client.setCredentials(JSON.parse(token));
+			let x = await listLabels(oAuth2Client);
+			resolve(x);
+		});
+	});
+}	catch(err) {
+	return getNewToken(oAuth2Client, callback);
+	}
+}
+
+	/**
+	* Get and store new token after prompting for user authorization, and then
+	* execute the given callback with the authorized OAuth2 client.
+	* @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
+	* @param {getEventsCallback} callback The callback for the authorized client.
+	*/
+	function getNewToken(oAuth2Client, callback) {
+		const authUrl = oAuth2Client.generateAuthUrl({
+			access_type: 'offline',
+			scope: SCOPES,
+		});
+		console.log('Authorize this app by visiting this url:', authUrl);
+		const rl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+		rl.question('Enter the code from that page here: ', (code) => {
+			rl.close();
+			oAuth2Client.getToken(code, (err, token) => {
+				if (err) return callback(err);
+				oAuth2Client.setCredentials(token);
+				// Store the token to disk for later program executions
+				fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+					if (err) return console.error(err);
+					console.log('Token stored to', TOKEN_PATH);
+				});
+			callback(oAuth2Client)
+
+			});
+		});
+	}
+
+	/**
+	* Lists the labels in the user's account.
+	*
+	* @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+	*/
+	async function listLabels(auth) {
+		try {
+			return new Promise ((resolve, reject) => {
+
+				const gmail = google.gmail({version: 'v1', auth});
+				gmail.users.messages.list({
+					auth: auth,
+					userId: 'me',
+					maxResults: 10,
+					q: 'label:Dispatch',
+				}, async function (err, response, callback) {
+					if (err) {
+						reject(err);
+					}
+					else {
+
+						var { messages } = response.data;
+						let x = await dealWithList(messages, gmail);
+						resolve(x);
+					}
+				});
+			});
+		} catch(err) {
+			console.log(err);
+		}
+	}
+
+	async function dealWithList(list, gmail) {
+		try {
+			return new Promise ((resolve, reject) => {
+				let arrCheck = [];
+				list.map((id) => {
+					gmail.users.messages.get({
+						'userId': 'me',
+						'id': id.id,
+						'format': 'full',
+					}, (err, response) => {
+						if (err) {
+							reject(err);
+						}
+						else {
+							let x = response.data.snippet;
+							arrCheck.push(x);
+							if (arrCheck.length === list.length) {
+								resolve(arrCheck);
+							}
+						}
+					}
+				);
+			});
+		});
+	}
+	catch (err) {
+		console.log(err);
+	}
+}
+
+async function checkCodes(alerts) {
+	
+}
+
+async function mainProgram() {
+	let x = await getAlertList();
+	checkCodes(x);
+}
+
+mainProgram();
+setInterval(mainProgram, 150000);
