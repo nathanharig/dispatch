@@ -226,7 +226,8 @@ async function formatList(alerts) {
 	}
 
 	function addressMinusNumbers(address, code){
-			if (address.includes('I 81') || address.includes('I 76') || /\D/.test(code[0]) && code[0] != "E" ){
+		let codeSlice = code.slice(0,2);
+			if (address.includes('I 81') || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
 				return address.trim();
 			}
 			else {
@@ -255,12 +256,12 @@ async function formatList(alerts) {
 				case '09': {
 					if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
 					{
-						let message = (`a report of an expiration, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+						let message = (`a report of an expiration, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 						return message;
 					}
 				  else {
 						if(testCode[tempCode]) {
-							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 							return message;
 						}
 						else {
@@ -269,8 +270,18 @@ async function formatList(alerts) {
 					}
 					break
 				}
+				case '29': {
+					if(testCode[tempCode]) {
+						let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}, expect delays and be alert for responders`);
+						return message;
+					}
+					else {
+						return ('an emergency call at ' + time + ' expect delays and be alert for responders');
+					}
+					break
+				}
 				default: {
-					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 					if(testCode[tempCode] && mcdCode[justMCD]) {
 					return message;
 					}
@@ -282,7 +293,7 @@ async function formatList(alerts) {
 		}
 		else {
 			if(testCode[code] && mcdCode[justMCD]) {
-				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 				return message;
 			}
 			else {
@@ -296,10 +307,19 @@ async function formatList(alerts) {
 		let code = '99';
 		let time = separated[7];
 		time = time.slice(5);
+		let arrHos = separated[6];
 		let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
 		let location = addressMinusNumbers(address, code);
-		let message = `Cleared incident in ${mcdCode[justMCD]} area of ${location} at ${time}, #${incidentNumber}`;
-		return message;
+		switch (/\d/.test(arrHos[10])) {
+		case false: {
+			let message = `Update- ${incidentNumber} clearing, no patient(s) transported: ${mcdCode[justMCD]} by ${location} ${timeMessage}, use caution as other responders may still be in the area.`;
+			return message;
+			}
+		default: {
+			let message = `Update- ${incidentNumber} clearing, patient(s) were transported to a local hospital: ${mcdCode[justMCD]} by ${location} ${timeMessage}, use caution as other responders may still be in the area. `;
+			return message;
+		}
+		}
 	}
 
 	alerts.map((i) => {
@@ -340,13 +360,15 @@ async function mainProgram() {
 	let formatted = await formatList(x);
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(i.incidentNumber)) {
-		console.log(`-----#${i.incidentNumber}: Dispatched to ${i.translated}\n\n`);
+		let dispatchMessage = (`*${i.incidentNumber}: Dispatched to ${i.translated}\n\n`);
+		console.log(dispatchMessage);
 		sentDispatch.push(i.incidentNumber);
 		}
 	});
 	formatted.uniqueFrees.forEach((i) => {
 		if (!sentFrees.includes(i.incidentNumber)) {
-		console.log(`----------${i.message}\n\n`);
+		let freeMessage = (`***${i.message}\n\n`);
+		console.log(freeMessage);
 		sentFrees.push(i.incidentNumber);
 		}
 	});

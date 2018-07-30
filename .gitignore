@@ -1,2 +1,4 @@
 # Ignore the access token
 access_token.js
+credentials.json
+token.json
