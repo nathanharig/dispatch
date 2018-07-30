@@ -131,5 +131,38 @@ function municipalCodeMaker(){
 	return codes;
 
 }
+
+function unitCodeMaker () {
+	let codes = {
+		'MU140M': 'MICU 140',
+		'MU240M': 'MICU 240',
+		'MU340M': 'MICU 340',
+		'MU440M': 'MICU 440',
+		'MU540M': 'MICU 540',
+		'MU640M': 'MICU 640',
+		'MU740M': 'MICU 740',
+		'MU840M': 'MICU 840',
+		'MU940M': 'MICU 940',
+		'MU1040M': 'MICU 1040',
+		'A140': 'Ambulance 140',
+		'A240': 'Ambulance 240',
+		'A340': 'Ambulance 340',
+		'A440': 'Ambulance 440',
+		'A540': 'Ambulance 540',
+		'A640': 'Ambulance 640',
+		'A740': 'Ambulance 740',
+		'A840': 'Ambulance 840',
+		'A940': 'Ambulance 940',
+		'A1040': 'Ambulance 1040',
+		'M140': 'Medic 140',
+		'M240': 'Medic 240',
+		'M340': 'Medic 340',
+		'REHAB40': 'Rehab 40',
+		'QRS40': 'QRS 40',
+		'BAR40': 'Bariatric 40',
+	}
+	return codes;
+}
 module.exports.municipalCodeMaker = municipalCodeMaker;
 module.exports.makeCodes = makeCodes;
+module.exports.unitCodeMaker = unitCodeMaker;
