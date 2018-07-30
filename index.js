@@ -1,26 +1,31 @@
-//const get_alert = require('./common/get_alert');
+const code_translator = require('./common/code_translator');
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const _ = require('lodash');
-
+const atob = require('atob');
+const moment = require('moment');
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const TOKEN_PATH = 'token.json';
 
+let sentDispatch = [];
+let sentFrees = [];
+moment().format();
+
 async function getAlertList() {
 	try {
-	return new Promise ((resolve, reject) => {
+		return new Promise ((resolve, reject) => {
 
-	fs.readFile('credentials.json', async function (err, content) {
-		if (err) return console.log('Error loading client secret file:', err);
-		// Authorize a client with credentials, then call the Gmail API.
-		let x = await authorize(JSON.parse(content), listLabels);
-		resolve(x);
-	});
-});
+			fs.readFile('credentials.json', async function (err, content) {
+				if (err) return console.log('Error loading client secret file:', err);
+				// Authorize a client with credentials, then call the Gmail API.
+				let x = await authorize(JSON.parse(content), listLabels);
+				resolve(x);
+			});
+		});
 
-} catch(err) {
-	console.log(err);
+	} catch(err) {
+		console.log(err);
 	}
 }
 
@@ -34,22 +39,22 @@ async function authorize(credentials, callback) {
 	try {
 		return new Promise ((resolve, reject) => {
 
-	const {client_secret, client_id, redirect_uris} = credentials.installed;
-	const oAuth2Client = new google.auth.OAuth2(
-		client_id, client_secret, redirect_uris[0]);
+			const {client_secret, client_id, redirect_uris} = credentials.installed;
+			const oAuth2Client = new google.auth.OAuth2(
+				client_id, client_secret, redirect_uris[0]);
 
-		// Check if we have previously stored a token.
-		fs.readFile(TOKEN_PATH, async function (err, token) {
-		//	if (err) reject getNewToken(oAuth2Client, callback);
-			oAuth2Client.setCredentials(JSON.parse(token));
-			let x = await listLabels(oAuth2Client);
-			resolve(x);
-		});
-	});
-}	catch(err) {
-	return getNewToken(oAuth2Client, callback);
+				// Check if we have previously stored a token.
+				fs.readFile(TOKEN_PATH, async function (err, token) {
+					//	if (err) reject getNewToken(oAuth2Client, callback);
+					oAuth2Client.setCredentials(JSON.parse(token));
+					let x = await listLabels(oAuth2Client);
+					resolve(x);
+				});
+			});
+		}	catch(err) {
+			return getNewToken(oAuth2Client, callback);
+		}
 	}
-}
 
 	/**
 	* Get and store new token after prompting for user authorization, and then
@@ -77,7 +82,7 @@ async function authorize(credentials, callback) {
 					if (err) return console.error(err);
 					console.log('Token stored to', TOKEN_PATH);
 				});
-			callback(oAuth2Client)
+				callback(oAuth2Client)
 
 			});
 		});
@@ -96,8 +101,8 @@ async function authorize(credentials, callback) {
 				gmail.users.messages.list({
 					auth: auth,
 					userId: 'me',
-					maxResults: 10,
-					q: 'label:Dispatch',
+					maxResults: 20,
+					q: 'label:Dispatch -PAGERA40 -PAGERM40',
 				}, async function (err, response, callback) {
 					if (err) {
 						reject(err);
@@ -129,7 +134,10 @@ async function authorize(credentials, callback) {
 							reject(err);
 						}
 						else {
-							let x = response.data.snippet;
+							let decoded = atob(response.data.payload.body.data)
+							//console.log(decoded);
+							//console.log(response.data.payload.body.data);
+							let x = decoded;
 							arrCheck.push(x);
 							if (arrCheck.length === list.length) {
 								resolve(arrCheck);
@@ -145,32 +153,205 @@ async function authorize(credentials, callback) {
 	}
 }
 
-async function checkCodes(alerts) {
+async function formatList(alerts) {
 	let dispatches = [];
 	let frees = [];
+	let { makeCodes, municipalCodeMaker } = code_translator;
+	let testCode = makeCodes();
+	let mcdCode = municipalCodeMaker();
+
+	function separateByNewLine(i)
+	{
+		let separated = i.split('\r\n');
+		return separated;
+	}
+
+	function getIncidentNumber(i) {
+		let x = i.indexOf('MI#:');
+		let incidentNumber = i.slice(x+4, x+13);
+		return incidentNumber;
+	}
+
+	function checkEnroute(i) {
+		let enrouteIndex = i.indexOf('Enr#:');
+		let enrouteSlice = i.slice(enrouteIndex + 5, enrouteIndex + 6);
+		if (enrouteSlice.match(/\d/)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function getDispatchCode(i) {
+		let code = i.split(' ', 1)
+		return code[0];
+	}
+
+	function addressFromDispatch(separated){
+		let addressLine = separated[1];
+		let semicolonIndex = separated[1].indexOf(';');
+		let addressSlice = separated[1].slice(0, semicolonIndex);
+		let splitComma = addressSlice.split(',', 2);
+
+		return {addressSlice: splitComma[0], split: splitComma[1]};
+	}
+
+	function addressFromFree(separated){
+		let addressLine = separated[0];
+		let semicolonIndex = separated[0].indexOf(';');
+		let addressSlice = separated[0].slice(0, semicolonIndex);
+		let splitComma = addressSlice.split(',', 2);
+		return {addressSlice: splitComma[0], split: splitComma[1]};
+	}
+
+	function crossStreet(separated) {
+		let crossStreetLine = separated[3];
+		let colonIndex = separated[3].indexOf(':');
+		let crossStreetSliceOne = separated[3].slice(colonIndex + 1);
+		if (crossStreetSliceOne.indexOf('/') === crossStreetSliceOne.length - 2) {
+			let crossStreetSliceTwo = crossStreetSliceOne.slice(0, crossStreetSliceOne.indexOf('/'));
+			return crossStreetSliceTwo
+		}
+		else {
+			return crossStreetSliceOne;
+		}
+	}
+
+	function dispatchTime(separated) {
+		let timeLine = separated[6];
+		let timeSlice = timeLine.slice(5)
+		let timeSplit = timeSlice.split(' ', 2);
+		return (moment(timeSlice, 'YYYY-MM-DD HH:mm:ss').format("M/D/YY h:mma"))
+	}
+
+	function addressMinusNumbers(address, code){
+			if (address.includes('I 81') || address.includes('I 76') || /\D/.test(code[0]) && code[0] != "E" ){
+				return address.trim();
+			}
+			else {
+				let addressArray = address.split(' ');
+				let droppedArray = _.drop(addressArray);
+				return droppedArray.join(' ').trim();
+			}
+		}
+
+	function codeTranslate(code, muncipalCode, time, cross, address) {
+		let location = addressMinusNumbers(address, code);
+
+		if (cross) {
+			cross = ` near ${cross}`;
+		}
+		else {
+			cross = '';
+		}
+
+		const justMCD = muncipalCode.slice(0,2);
+		if (/\d/.test(code[0]))	{
+			tempCode = code.slice(0,2);
+			codeWithModifier = code.slice(0,3);
+			codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
+			switch(tempCode) {
+				case '09': {
+					if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
+					{
+						let message = (`a report of an expiration, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+						return message;
+					}
+				  else {
+						if(testCode[tempCode]) {
+							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+							return message;
+						}
+						else {
+							return ('an emergency call at ' + time);
+						}
+					}
+					break
+				}
+				default: {
+					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+					if(testCode[tempCode] && mcdCode[justMCD]) {
+					return message;
+					}
+					else {
+						return (`an emergency call at ${time}`)
+					}
+				}
+			}
+		}
+		else {
+			if(testCode[code] && mcdCode[justMCD]) {
+				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location},${cross} at ${time}`);
+				return message;
+			}
+			else {
+				return (`an emergency call at ${time}${cross}`)
+			}
+		}
+	}
+
+	function freesMessage(separated, address, incidentNumber, municipalCode) {
+		const justMCD = municipalCode.slice(0,2);
+		let code = '99';
+		let time = separated[7];
+		time = time.slice(5);
+		let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
+		let location = addressMinusNumbers(address, code);
+		let message = `Cleared incident in ${mcdCode[justMCD]} area of ${location} at ${time}, #${incidentNumber}`;
+		return message;
+	}
+
 	alerts.map((i) => {
-		if(i.includes('Lat/Lon') && !dispatches.includes(i)) {
-			dispatches.push(i);
+		if(i.includes('Lat/Lon')) {
+			let separated = separateByNewLine(i);
+			let incidentNumber = getIncidentNumber(i);
+			let code = getDispatchCode(i);
+			let tempAddress = addressFromDispatch(separated)
+			let address = tempAddress.addressSlice;
+			let municipalCode = tempAddress.split;
+			let cross = crossStreet(separated);
+			let time = dispatchTime(separated);
+			let translated = codeTranslate(code, municipalCode, time, cross, address);
+			dispatches.push({incidentNumber, code, address, cross, municipalCode, time, translated});
 		}
 		else if (!i.includes('Lat/Lon')) {
-			let x = i.indexOf('MI#:');
-			let it = i.slice(0, x+13);
-			let miSlice = i.slice(x, x+13);
-			let enrouteIndex = i.indexOf('Enr#:')
-			let enrouteSlice = i.slice(enrouteIndex + 5, enrouteIndex + 6)
-			console.log(frees.includes(miSlice));
-			if (!frees.includes(miSlice) &&  enrouteSlice.match(/\d/)) {
-			frees.push(i);
-		}
+			let separated = separateByNewLine(i);
+			let incidentNumber = getIncidentNumber(i);
+			let enrouteSlice = checkEnroute(i);
+			let tempAddress = addressFromFree(separated)
+			let address = tempAddress.addressSlice;
+			let municipalCode = tempAddress.split;
+			let message = freesMessage(separated, address, incidentNumber, municipalCode);
+			if (enrouteSlice) {
+				frees.push({incidentNumber, address, municipalCode, message});
+			}
 		}
 	});
-	console.log(`Dispatches = ${dispatches} \n \n \nFrees = ${frees}`);
+	const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
+	const uniqueFrees = frees.filter((object,index) => index === frees.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
+
+	return {uniqueDispatches, uniqueFrees};
 }
 
 async function mainProgram() {
+	console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
 	let x = await getAlertList();
-	checkCodes(x);
+	let formatted = await formatList(x);
+	formatted.uniqueDispatches.forEach((i) => {
+		if (!sentDispatch.includes(i.incidentNumber)) {
+		console.log(`-----#${i.incidentNumber}: Dispatched to ${i.translated}\n\n`);
+		sentDispatch.push(i.incidentNumber);
+		}
+	});
+	formatted.uniqueFrees.forEach((i) => {
+		if (!sentFrees.includes(i.incidentNumber)) {
+		console.log(`----------${i.message}\n\n`);
+		sentFrees.push(i.incidentNumber);
+		}
+	});
+
 }
 
 mainProgram();
-setInterval(mainProgram, 150000);
+setInterval(mainProgram, 60000);
