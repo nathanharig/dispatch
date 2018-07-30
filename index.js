@@ -146,7 +146,25 @@ async function authorize(credentials, callback) {
 }
 
 async function checkCodes(alerts) {
-	
+	let dispatches = [];
+	let frees = [];
+	alerts.map((i) => {
+		if(i.includes('Lat/Lon') && !dispatches.includes(i)) {
+			dispatches.push(i);
+		}
+		else if (!i.includes('Lat/Lon')) {
+			let x = i.indexOf('MI#:');
+			let it = i.slice(0, x+13);
+			let miSlice = i.slice(x, x+13);
+			let enrouteIndex = i.indexOf('Enr#:')
+			let enrouteSlice = i.slice(enrouteIndex + 5, enrouteIndex + 6)
+			console.log(frees.includes(miSlice));
+			if (!frees.includes(miSlice) &&  enrouteSlice.match(/\d/)) {
+			frees.push(i);
+		}
+		}
+	});
+	console.log(`Dispatches = ${dispatches} \n \n \nFrees = ${frees}`);
 }
 
 async function mainProgram() {
