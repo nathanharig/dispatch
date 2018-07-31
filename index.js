@@ -257,7 +257,7 @@ async function formatList(alerts) {
 				case '09': {
 					if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
 					{
-						let message = (`a report of an expiration, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+						let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 						return message;
 					}
 				  else {
@@ -313,11 +313,11 @@ async function formatList(alerts) {
 		let location = addressMinusNumbers(address, code);
 		switch (/\d/.test(arrHos[10])) {
 		case false: {
-			let message = `Update- ${incidentNumber} - ${unit} clearing, no patient(s) transported: ${mcdCode[justMCD]} by ${location} ${timeMessage}, use caution as other responders may still be in the area.`;
+			let message = `Update- ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. Caution- other responders may still be in the area.`;
 			return message;
 			}
 		default: {
-			let message = `Update- ${incidentNumber} - ${unit} clearing, patient(s) were transported to a local hospital: ${mcdCode[justMCD]} by ${location} ${timeMessage}, use caution as other responders may still be in the area. `;
+			let message = `Update- ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. Caution- other responders may still be in the area. `;
 			return message;
 		}
 		}
@@ -380,19 +380,20 @@ async function formatList(alerts) {
 }
 
 async function mainProgram() {
-	console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
+	//console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
 	let x = await getAlertList();
 	let formatted = await formatList(x);
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(i.incidentNumber)) {
-		let dispatchMessage = (`*${i.incidentNumber}: Dispatched to ${i.translated}\n\n`);
+		let dispatchMessage = (`${new Date().toLocaleString()}-----${i.incidentNumber}: Dispatch- ${i.translated}\n\n`);
 		console.log(dispatchMessage);
 		sentDispatch.push(i.incidentNumber);
 		}
+
 	});
 	formatted.frees.forEach((i) => {
 		if (!sentFrees.includes(i.index)) {
-		let freeMessage = (`***${i.message}\n\n`);
+		let freeMessage = (`${new Date().toLocaleString()}-----${i.message}\n\n`);
 		console.log(freeMessage);
 		sentFrees.push(i.index);
 		}
