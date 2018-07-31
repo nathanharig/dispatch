@@ -257,37 +257,37 @@ async function formatList(alerts) {
 				case '09': {
 					if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
 					{
-						let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+						let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 						return message;
 					}
 				  else {
 						if(testCode[tempCode]) {
-							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 							return message;
 						}
 						else {
-							return ('an emergency call at ' + time);
+							return ('an emergency call - ' + time);
 						}
 					}
 					break
 				}
 				case '29': {
 					if(testCode[tempCode]) {
-						let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}, expect delays and be alert for responders`);
+						let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays and be alert for responders`);
 						return message;
 					}
 					else {
-						return ('an emergency call at ' + time + ' expect delays and be alert for responders');
+						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
 					}
 					break
 				}
 				default: {
-					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 					if(testCode[tempCode] && mcdCode[justMCD]) {
 					return message;
 					}
 					else {
-						return (`an emergency call at ${time}`)
+						return (`an emergency call - ${time}`)
 					}
 				}
 			}
