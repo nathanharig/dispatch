@@ -385,7 +385,7 @@ async function mainProgram() {
 	let formatted = await formatList(x);
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(i.incidentNumber)) {
-		let dispatchMessage = (`${new Date().toLocaleString()}-----${i.incidentNumber}: Dispatch- ${i.translated}\n\n`);
+		let dispatchMessage = (`${moment().format('MM/DD HH:mm')} ||-----|| ${i.incidentNumber}: Dispatch- ${i.translated}\n\n`);
 		console.log(dispatchMessage);
 		sentDispatch.push(i.incidentNumber);
 		}
@@ -393,7 +393,7 @@ async function mainProgram() {
 	});
 	formatted.frees.forEach((i) => {
 		if (!sentFrees.includes(i.index)) {
-		let freeMessage = (`${new Date().toLocaleString()}-----${i.message}\n\n`);
+		let freeMessage = (`${moment().format('MM/DD HH:mm')} ||-----|| ${i.message}\n\n`);
 		console.log(freeMessage);
 		sentFrees.push(i.index);
 		}
