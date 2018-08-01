@@ -101,7 +101,7 @@ async function authorize(credentials, callback) {
 				gmail.users.messages.list({
 					auth: auth,
 					userId: 'me',
-					maxResults: 20,
+					maxResults: 10,
 					q: 'label:Dispatch -PAGERA40 -PAGERM40',
 				}, async function (err, response, callback) {
 					if (err) {
@@ -228,7 +228,7 @@ async function formatList(alerts) {
 
 	function addressMinusNumbers(address, code){
 		let codeSlice = code.slice(0,2);
-			if (address.includes('I 81') || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
+			if (address.includes('I 81') || address.includes('COUNTY') || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
 				return address.trim();
 			}
 			else {
@@ -293,8 +293,12 @@ async function formatList(alerts) {
 			}
 		}
 		else {
-			if(testCode[code] && mcdCode[justMCD]) {
+			if(testCode[code] && mcdCode[justMCD && testCode[code] != 'MUTAID']) {
 				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+				return message;
+			}
+			else if (testCode[code] && mcdCode[justMCD] && code === 'MUTAID') {
+				let message = (`${testCode[code]} to ${mcdCode[justMCD]} at ${time}`);
 				return message;
 			}
 			else {
@@ -311,13 +315,19 @@ async function formatList(alerts) {
 		let arrHos = separated[6];
 		let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
 		let location = addressMinusNumbers(address, code);
+		let checkMUTAID = location.split(' ');
+		let endMessage = 'Caution- other responders may still be in the area.';
+		if (checkMUTAID[1] === 'COUNTY') {
+			location = 'mutual aid';
+			endMessage = '';
+		}
 		switch (/\d/.test(arrHos[10])) {
 		case false: {
-			let message = `Update- ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. Caution- other responders may still be in the area.`;
+			let message = `Update- ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
 			return message;
 			}
 		default: {
-			let message = `Update- ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. Caution- other responders may still be in the area. `;
+			let message = `Update- ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
 			return message;
 		}
 		}
