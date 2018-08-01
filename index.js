@@ -323,11 +323,11 @@ async function formatList(alerts) {
 		}
 		switch (/\d/.test(arrHos[10])) {
 		case false: {
-			let message = `Update- ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+			let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
 			return message;
 			}
 		default: {
-			let message = `Update- ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+			let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
 			return message;
 		}
 		}
