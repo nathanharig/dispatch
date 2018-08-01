@@ -24,7 +24,7 @@ function makeCodes() {
 		'22': 'Reported non-vehicle rescue',
 		'23': 'Reported overdose',
 		'24': 'Reported medical emergency',//'a reported obstetrical emergency',
-		'25': 'Reported medical emergency',//'a reported behavioral emergency',
+		'25': 'Reported behavioral emergency',//'a reported behavioral emergency',
 		'26': 'Reported medical emergency',//'a reported sick person',
 		'27': 'Reported weapons-related injury',
 		'28': 'Reported medical emergency',//'a reported stroke',
