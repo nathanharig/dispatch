@@ -4,7 +4,7 @@ function makeCodes() {
 		'02': 'Reported medical emergency',//'a reported allergic reaction',
 		'03': 'Reported injury',//'a reported animal bite',
 		'04': 'Reported assault',//'a reported assault',
-		'05': 'RReported medical emergency',//'a reported patient with back pain',
+		'05': 'Reported medical emergency',//'a reported patient with back pain',
 		'06': 'Reported medical emergency',//'a reported patient with difficulty breathing',
 		'07': 'Reported injury due to burns or explosions',
 		'08': 'Reported HAZMAT or CO incident',
