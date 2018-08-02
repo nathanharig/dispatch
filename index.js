@@ -249,6 +249,7 @@ async function formatList(alerts) {
 		}
 
 		const justMCD = muncipalCode.slice(0,2);
+
 		if (/\d/.test(code[0]))	{
 			tempCode = code.slice(0,2);
 			codeWithModifier = code.slice(0,3);
@@ -269,17 +270,51 @@ async function formatList(alerts) {
 							return ('an emergency call - ' + time);
 						}
 					}
-					break
+					break;
 				}
 				case '29': {
 					if(testCode[tempCode]) {
-						let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays and be alert for responders`);
+					let crashMessage = ((aCode, messageCode) => {
+							switch(aCode) {
+							case '29D02m':
+								return 'Reported pedestrian(s) struck';
+								break;
+							case '29D02l':
+								return 'Reported vehicle/bike/motorcycle crash';
+								break;
+							case '29D01h':
+								return 'Reported vehicle vs a structure crash';
+								break;
+							default:
+								return `${messageCode}`;
+						}
+					})(code, testCode[tempCode]);
+						let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
 						return message;
 					}
 					else {
 						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
 					}
 					break
+				}
+				case '27':  {
+					if(testCode[tempCode]) {
+					let shootingMessage = ((aCode, messageCode) => {
+							switch(aCode) {
+							case 'G': return 'Reported gunshot pt(s)';
+							break;
+							case 'S':	return 'Reported stabbing pt(s)';
+							break;
+							default : return `${messageCode}`;
+						}
+					})(code[code.length-1], testCode[tempCode]);
+						let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
+						return message;
+					}
+					else {
+						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+					}
+					break;
 				}
 				default: {
 					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
@@ -293,7 +328,7 @@ async function formatList(alerts) {
 			}
 		}
 		else {
-			if(testCode[code] && mcdCode[justMCD && testCode[code] != 'MUTAID']) {
+				if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID') {
 				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 				return message;
 			}
