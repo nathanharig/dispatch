@@ -318,6 +318,7 @@ async function formatList(alerts) {
 				}
 				default: {
 					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
+					console.log(mcdCode[justMCD]);
 					if(testCode[tempCode] && mcdCode[justMCD]) {
 					return message;
 					}
@@ -386,7 +387,6 @@ async function formatList(alerts) {
 				else {
 					return 'We';
 				}
-				console.log('Other');
 			}
 		}
 		return 'test';

@@ -91,6 +91,7 @@ function municipalCodeMaker(){
 		'SF':	'Borough of Shippensburg',
 		'SH':	'Southampton Township',
 		'UM':	'Upper Mifflin Township',
+		'LM':	'Lower Mifflin Township',
 		'NN':	'North Newton Township',
 		'NW':	'Borough of Newville',
 		'SN':	'South Newton Township',
