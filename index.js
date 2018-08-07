@@ -240,7 +240,7 @@ async function formatList(alerts) {
 
 	function codeTranslate(code, muncipalCode, time, cross, address) {
 		let location = addressMinusNumbers(address, code);
-		if (cross && cross != ' ') {
+		if (/\d/.test(address[0]) && cross && cross != ' ') {
 			cross = ` near ${cross}`;
 		}
 		else {
