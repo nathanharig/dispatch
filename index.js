@@ -228,7 +228,7 @@ async function formatList(alerts) {
 
 	function addressMinusNumbers(address, code){
 		let codeSlice = code.slice(0,2);
-			if (address.includes('I 81') || address.includes('COUNTY') || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
+			if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
 				return address.trim();
 			}
 			else {
