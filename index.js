@@ -7,6 +7,9 @@ const atob = require('atob');
 const moment = require('moment');
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const TOKEN_PATH = 'token.json';
+var twit = require('twit');
+var config = require ('./.config.js');
+var Twitter = new twit(config);
 
 let sentDispatch = [];
 let sentFrees = [];
@@ -327,7 +330,12 @@ async function formatList(alerts) {
 			}
 		}
 		else {
-				if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID') {
+			let mutaidBool = true;
+			let checkMUTAID = location.split(' ');
+			if (checkMUTAID[1] === 'COUNTY') {
+				mutaidBool = false;
+			}
+				if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
 				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 				return message;
 			}
@@ -421,6 +429,72 @@ async function formatList(alerts) {
 	const uniqueFrees = frees.filter((object,index) => index === frees.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
 	return {uniqueDispatches, frees};
 }
+/*
+var mySearch = function(){
+	rtTerms = ['win tickets rt', 'win tix rt' , 'win pair rt', '#WinItWednesday' , '#FreebieFriday']
+	var currentDate = new Date(Date.now());
+	var formatDate = currentDate.toUTCString();
+	console.log(`####### MySearch /// Current Date is ${formatDate} /// #######`);
+	for (var i in rtTerms)
+	{
+		var params =rtTerms[i];
+		//  retweet(params)
+		retweet(params,'40.2,-77.2,200mi')
+	}
+	//console.log('mySearch Complete');
+}
+
+var recentDatesOnly = function(statusDate){
+	var currentDate = new Date(Date.now() - 345600000);
+	var checkDate = new Date(statusDate);
+	var isCurrent = false;
+	if (checkDate >= currentDate)
+	{
+		isCurrent = true;
+	}
+	// console.log('recentDatesOnly Complete');
+	return isCurrent;
+}
+
+var blockList = function(screenName){
+	var blocked = ['NathanWinsStuff', 'nathanharig', 'your_home', 'TempleEDM', 'HoneyBunnyTV'];
+	var check = true;
+	for (i in blocked) {
+		if (blocked[i] === screenName) {
+			check = false;
+		}
+	}
+	//  console.log('blockList Complete');
+	return check;
+}
+
+var retweet = function(params, geo) {
+	var params = {
+		q: params,
+		result_type: 'recent',
+		lang: 'en',
+		geocode: geo,
+	}
+
+/*	Twitter.get('search/tweets', params, function(err, data) {
+		try {
+			if (!err && data.statuses[0].retweeted_status != null) {
+				var dated = recentDatesOnly(data.statuses[0].retweeted_status.created_at)
+				var retweetId = data.statuses[0].retweeted_status.id_str;
+				var screenName = data.statuses[0].retweeted_status.user.screen_name;
+				var notRetweet = data.statuses[0].retweeted_status;
+				var tweet = data.statuses[0];
+			}
+		}
+			catch(e) {
+				console.log(`${data.statuses[0]} and \n ${e}`);
+			}
+		});
+
+		Twitter.getAuth()
+	}
+	*/
+
 
 async function mainProgram() {
 	//console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
@@ -428,17 +502,17 @@ async function mainProgram() {
 	let formatted = await formatList(x);
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(i.incidentNumber)) {
-		let dispatchMessage = (`${moment().format('MM/DD HH:mm')} ||-----|| ${i.incidentNumber}: Dispatch- ${i.translated}\n\n`);
-		console.log(dispatchMessage);
-		sentDispatch.push(i.incidentNumber);
+			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
+			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
+			sentDispatch.push(i.incidentNumber);
 		}
 
 	});
 	formatted.frees.forEach((i) => {
 		if (!sentFrees.includes(i.index)) {
-		let freeMessage = (`${moment().format('MM/DD HH:mm')} ||-----|| ${i.message}\n\n`);
-		console.log(freeMessage);
-		sentFrees.push(i.index);
+			let freeMessage = (`${i.message}`);
+			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
+			sentFrees.push(i.index);
 		}
 	});
 
