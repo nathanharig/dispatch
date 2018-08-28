@@ -51,6 +51,7 @@ function makeCodes() {
 		'FMASTN': 'Reported mass transportation emergency',
 		'FMISC': 'Fire call',
 		'FOTRES': 'Fire call',
+		'FINI': 'Fire call',
 		'FOUI': 'Fire call',
 		'F1ST': 'Fire call',
 		'F2ND': 'Fire call',
