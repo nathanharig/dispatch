@@ -104,7 +104,7 @@ async function authorize(credentials, callback) {
 				gmail.users.messages.list({
 					auth: auth,
 					userId: 'me',
-					maxResults: 2,
+					maxResults: 10,
 					q: 'label:Dispatch -PAGERA40 -PAGERM40',
 				}, async function (err, response, callback) {
 					if (err) {
