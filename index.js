@@ -231,15 +231,15 @@ async function formatList(alerts) {
 
 	function addressMinusNumbers(address, code){
 		let codeSlice = code.slice(0,2);
-			if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
-				return address.trim();
-			}
-			else {
-				let addressArray = address.split(' ');
-				let droppedArray = _.drop(addressArray);
-				return droppedArray.join(' ').trim();
-			}
+		if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
+			return address.trim();
 		}
+		else {
+			let addressArray = address.split(' ');
+			let droppedArray = _.drop(addressArray);
+			return droppedArray.join(' ').trim();
+		}
+	}
 
 	function codeTranslate(code, muncipalCode, time, cross, address) {
 		let location = addressMinusNumbers(address, code);
@@ -263,7 +263,7 @@ async function formatList(alerts) {
 						let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 						return message;
 					}
-				  else {
+					else {
 						if(testCode[tempCode]) {
 							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 							return message;
@@ -276,21 +276,21 @@ async function formatList(alerts) {
 				}
 				case '29': {
 					if(testCode[tempCode]) {
-					let crashMessage = ((aCode, messageCode) => {
+						let crashMessage = ((aCode, messageCode) => {
 							switch(aCode) {
-							case '29D02m':
+								case '29D02m':
 								return 'Reported pedestrian(s) struck';
 								break;
-							case '29D02l':
+								case '29D02l':
 								return 'Reported vehicle/bike/motorcycle crash';
 								break;
-							case '29D01h':
+								case '29D01h':
 								return 'Reported vehicle vs a structure crash';
 								break;
-							default:
+								default:
 								return `${messageCode}`;
-						}
-					})(code, testCode[tempCode]);
+							}
+						})(code, testCode[tempCode]);
 						let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
 						return message;
 					}
@@ -301,15 +301,15 @@ async function formatList(alerts) {
 				}
 				case '27':  {
 					if(testCode[tempCode]) {
-					let shootingMessage = ((aCode, messageCode) => {
+						let shootingMessage = ((aCode, messageCode) => {
 							switch(aCode) {
-							case 'G': return 'Reported gunshot pt(s)';
-							break;
-							case 'S':	return 'Reported stabbing pt(s)';
-							break;
-							default : return `${messageCode}`;
-						}
-					})(code[code.length-1], testCode[tempCode]);
+								case 'G': return 'Reported gunshot pt(s)';
+								break;
+								case 'S':	return 'Reported stabbing pt(s)';
+								break;
+								default : return `${messageCode}`;
+							}
+						})(code[code.length-1], testCode[tempCode]);
 						let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
 						return message;
 					}
@@ -321,7 +321,7 @@ async function formatList(alerts) {
 				default: {
 					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 					if(testCode[tempCode] && mcdCode[justMCD]) {
-					return message;
+						return message;
 					}
 					else {
 						return (`an emergency call - ${time}`)
@@ -335,7 +335,7 @@ async function formatList(alerts) {
 			if (checkMUTAID[1] === 'COUNTY') {
 				mutaidBool = false;
 			}
-				if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
+			if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
 				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
 				return message;
 			}
@@ -364,14 +364,14 @@ async function formatList(alerts) {
 			endMessage = '';
 		}
 		switch (/\d/.test(arrHos[10])) {
-		case false: {
-			let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-			return message;
+			case false: {
+				let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+				return message;
 			}
-		default: {
-			let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-			return message;
-		}
+			default: {
+				let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+				return message;
+			}
 		}
 	}
 
@@ -438,10 +438,10 @@ async function mainProgram() {
 		if (!sentDispatch.includes(i.incidentNumber)) {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
 			Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
-  		if (error) {
-    	console.log(`Error- ${error} for ${dispatchMessage}`);
-  		}
-});
+				if (error) {
+					console.log(`Error- ${error} for ${dispatchMessage}`);
+				}
+			});
 			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
 			sentDispatch.push(i.incidentNumber);
 		}
@@ -451,15 +451,16 @@ async function mainProgram() {
 		if (!sentFrees.includes(i.index)) {
 			let freeMessage = (`${i.message}`);
 			Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
-  		if (error) {
-    	console.log(`Error- ${error} for ${freeMessage}`);
-  		}
-			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
-			sentFrees.push(i.index);
-		}
-	});
+				if (error) {
+					console.log(`Error- ${error} for ${freeMessage}`);
+				}
+			});
+				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
+				sentFrees.push(i.index);
+			}
+		});
 
-}
+	}
 
-mainProgram();
-setInterval(mainProgram, 180000);
+	mainProgram();
+	setInterval(mainProgram, 180000);
