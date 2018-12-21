@@ -445,7 +445,6 @@ async function mainProgram() {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
 			Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
-				console.log(`tweet sent for ${i.translated}`);
 				if (error) {
 					console.log(`Error- ${error} for ${dispatchMessage}`);
 				}
