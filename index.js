@@ -319,6 +319,9 @@ async function formatList(alerts) {
 					break;
 				}
 				default: {
+					if (testCode[tempCode] === 'DNS') {
+						return 'DNS';
+					}
 					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 					if(testCode[tempCode] && mcdCode[justMCD]) {
 						return message;
@@ -440,13 +443,17 @@ async function mainProgram() {
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(i.incidentNumber)) {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
+			if (i.translated !== 'DNS') {
 			Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 				if (error) {
 					console.log(`Error- ${error} for ${dispatchMessage}`);
 				}
 			});
-
+			
 			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
+
+		}
+
 			sentDispatch.push(i.incidentNumber);
 		}
 
@@ -455,11 +462,11 @@ async function mainProgram() {
 		if (!sentFrees.includes(i.index)) {
 			let freeMessage = (`${i.message}`);
 
-			Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
+			/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
 				if (error) {
 					console.log(`Error- ${error} for ${freeMessage}`);
 				}
-			});
+			}); */
 
 				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
 				sentFrees.push(i.index);
