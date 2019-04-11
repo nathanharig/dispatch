@@ -138,10 +138,10 @@ async function authorize(credentials, callback) {
 						}
 						else {
 							let decoded = atob(response.data.payload.body.data)
-							console.log(`Decoded - ${decoded}`);
+					//		console.log(`Decoded - ${decoded}`);
 							if (decoded == '')
 							{
-								console.log('BLANK');
+						//		console.log('BLANK');
 							}
 						//	console.log(response.data.payload.body.data);
 							let x = decoded;
@@ -171,7 +171,7 @@ async function formatList(alerts) {
 	function separateByNewLine(i)
 	{
 		let separated = i.split('\r\n');
-		console.log(`Split- ${i.split('\r')}`);
+	//	console.log(`Split- ${i.split('\r')}`);
 		return separated;
 	}
 
@@ -410,7 +410,7 @@ async function formatList(alerts) {
 	}
 
 	alerts.map((i) => {
-		console.log(`This is i - ${i}`);
+	//	console.log(`This is i - ${i}`);
 		if(i.includes('Lat/Lon')) {
 			let separated = separateByNewLine(i);
 			let incidentNumber = getIncidentNumber(i);
@@ -424,7 +424,7 @@ async function formatList(alerts) {
 			dispatches.push({incidentNumber, code, address, cross, municipalCode, time, translated});
 		}
 		else if (!i.includes('Lat/Lon')) {
-			console.log(`Else Statement`);
+		//	console.log(`Else Statement`);
 			let separated = separateByNewLine(i);
 			let incidentNumber = getIncidentNumber(i);
 			let enrouteSlice = checkEnroute(i);
