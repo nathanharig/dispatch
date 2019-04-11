@@ -304,13 +304,34 @@ async function formatList(alerts) {
 					}
 					break
 				}
+				case '20': {
+					if(testCode[tempCode]) {
+						let crashMessage = ((aCode, messageCode) => {
+							switch(aCode[aCode.length-1]) {
+								case 'C':
+								return 'Reported hypothermia or cold-related emergency';
+								break;
+								case 'H':
+								return 'Reported hyperthermia or heat-related emergency';
+								default:
+								return `${messageCode}`;
+							}
+						})(code, testCode[tempCode]);
+						let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
+						return message;
+					}
+					else {
+						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+					}
+					break
+				}
 				case '27':  {
 					if(testCode[tempCode]) {
 						let shootingMessage = ((aCode, messageCode) => {
 							switch(aCode) {
-								case 'G': return 'Reported gunshot pt(s)';
+								case 'G': return 'Reported patient(s) who have been shot';
 								break;
-								case 'S':	return 'Reported stabbing pt(s)';
+								case 'S':	return 'Reported patient(s) who have been stabbed)';
 								break;
 								default : return `${messageCode}`;
 							}
@@ -456,6 +477,7 @@ async function mainProgram() {
 					console.log(`Error- ${error} for ${dispatchMessage}`);
 				}
 			});
+			
 
 			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
 
