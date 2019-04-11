@@ -9,7 +9,7 @@ function makeCodes() {
 		'07': 'Reported injury due to burns or explosions',
 		'08': 'Reported HAZMAT or CO incident',
 		'09': 'Reported patient in cardiac arrest',
-		'10': 'Reported medical emergency',//'a reported chest pain patient',
+		'10': 'DNS',//'a reported chest pain patient',
 		'11': 'Reported choking patient',
 		'12': 'DNS',//'a reported seizure patient',
 		'13': 'DNS',//'a reported diabetic emergency',
