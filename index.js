@@ -469,7 +469,7 @@ async function mainProgram() {
 	let x = await getAlertList();
 	let formatted = await formatList(x);
 	formatted.uniqueDispatches.forEach((i) => {
-		if (!sentDispatch.includes(i.incidentNumber)) {
+		if (!sentDispatch.includes(`${i.incidentNumber}-${i.translated}`)) {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
 			Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
@@ -477,13 +477,13 @@ async function mainProgram() {
 					console.log(`Error- ${error} for ${dispatchMessage}`);
 				}
 			});
-			
+
 
 			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
 
 		}
 
-			sentDispatch.push(i.incidentNumber);
+			sentDispatch.push(`${i.incidentNumber}-${i.translated}`);
 		}
 
 	});
