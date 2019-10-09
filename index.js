@@ -325,7 +325,7 @@ async function formatList(alerts) {
 					}
 					break
 				}
-				case '27':  {
+				/* case '27':  {
 					if(testCode[tempCode]) {
 						let shootingMessage = ((aCode, messageCode) => {
 							switch(aCode) {
@@ -344,6 +344,7 @@ async function formatList(alerts) {
 					}
 					break;
 				}
+				*/
 				default: {
 					if (testCode[tempCode] === 'DNS') {
 						return 'DNS';
@@ -485,7 +486,7 @@ async function mainProgram() {
 		}
 
 			sentDispatch.push(`${i.incidentNumber}-${i.code}`);
-		
+
 		}
 
 	});
