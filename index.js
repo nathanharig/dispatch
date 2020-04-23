@@ -113,7 +113,7 @@ async function authorize(credentials, callback) {
 					else {
 
 						var { messages } = response.data;
-						let x = await dealWithList(messages, gmail);
+						let x = await dealWithList(messages, gmail).catch(e => console.log('Error: ', e.message));
 						resolve(x);
 					}
 				});
@@ -137,14 +137,16 @@ async function authorize(credentials, callback) {
 							reject(err);
 						}
 						else {
-							let decoded = atob(response.data.payload.body.data)
-					//		console.log(`Decoded - ${decoded}`);
+							//	console.log(`Response- ${response.data.payload.body.data}`);
+							let decoded = atob(response.data.payload.body.data);
+
+							//		console.log(`Decoded - ${decoded}`);
 							if (decoded == '')
 							{
-						//		console.log('BLANK');
+								console.log('BLANK');
 							}
-						//	console.log(response.data.payload.body.data);
-							let x = decoded;
+							//	console.log(response.data.payload.body.data);
+							let x =  decoded;
 							arrCheck.push(x);
 							if (arrCheck.length === list.length) {
 								resolve(arrCheck);
@@ -157,6 +159,7 @@ async function authorize(credentials, callback) {
 	}
 	catch (err) {
 		console.log(err);
+		reject(err);
 	}
 }
 
@@ -171,7 +174,7 @@ async function formatList(alerts) {
 	function separateByNewLine(i)
 	{
 		let separated = i.split('\r\n');
-	//	console.log(`Split- ${i.split('\r')}`);
+		//	console.log(`Split- ${i.split('\r')}`);
 		return separated;
 	}
 
@@ -193,6 +196,7 @@ async function formatList(alerts) {
 	}
 
 	function getDispatchCode(i) {
+
 		let code = i.split(' ', 1)
 		return code[0];
 	}
@@ -235,7 +239,11 @@ async function formatList(alerts) {
 	}
 
 	function addressMinusNumbers(address, code){
-		let codeSlice = code.slice(0,2);
+		var codeSlice = code.slice(0,2);
+		if (code[3] === 'U'){
+			codeSlice = 'MUTAID';
+		}
+		console.log(`codeSlice- ${codeSlice}`);
 		if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
 			return address.trim();
 		}
@@ -326,164 +334,164 @@ async function formatList(alerts) {
 					break
 				}
 				/* case '27':  {
-					if(testCode[tempCode]) {
-						let shootingMessage = ((aCode, messageCode) => {
-							switch(aCode) {
-								case 'G': return 'Reported patient(s) who have been shot';
-								break;
-								case 'S':	return 'Reported patient(s) who have been stabbed)';
-								break;
-								default : return `${messageCode}`;
-							}
-						})(code[code.length-1], testCode[tempCode]);
-						let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
-						return message;
-					}
-					else {
-						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
-					}
-					break;
-				}
-				*/
-				default: {
-					if (testCode[tempCode] === 'DNS') {
-						return 'DNS';
-					}
-					let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
-					if(testCode[tempCode] && mcdCode[justMCD]) {
-						return message;
-					}
-					else {
-						return (`an emergency call - ${time}`)
-					}
-				}
+				if(testCode[tempCode]) {
+				let shootingMessage = ((aCode, messageCode) => {
+				switch(aCode) {
+				case 'G': return 'Reported patient(s) who have been shot';
+				break;
+				case 'S':	return 'Reported patient(s) who have been stabbed)';
+				break;
+				default : return `${messageCode}`;
 			}
+		})(code[code.length-1], testCode[tempCode]);
+		let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
+		return message;
+	}
+	else {
+	return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+}
+break;
+}
+*/
+default: {
+	if (testCode[tempCode] === 'DNS') {
+		return 'DNS';
+	}
+	let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
+	if(testCode[tempCode] && mcdCode[justMCD]) {
+		return message;
+	}
+	else {
+		return (`an emergency call - ${time}`)
+	}
+}
+}
+}
+else {
+	let mutaidBool = true;
+	let checkMUTAID = location.split(' ');
+	if (checkMUTAID[1] === 'COUNTY') {
+		mutaidBool = false;
+	}
+	if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
+		let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+		return message;
+	}
+	else if (testCode[code] && mcdCode[justMCD] && code === 'MUTAID') {
+		let message = (`${testCode[code]} to ${mcdCode[justMCD]} at ${time}`);
+		return message;
+	}
+	else {
+		return (`an emergency call at ${time}${cross}`)
+	}
+}
+}
+
+function freesMessage(separated, address, incidentNumber, municipalCode, unit) {
+	const justMCD = municipalCode.slice(0,2);
+	let code = '99';
+	let time = separated[7];
+	time = time.slice(5);
+	let arrHos = separated[6];
+	let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
+	let location = addressMinusNumbers(address, code);
+	let checkMUTAID = location.split(' ');
+	let endMessage = 'Caution- other responders may still be in the area.';
+	if (checkMUTAID[1] === 'COUNTY') {
+		location = 'mutual aid';
+		endMessage = '';
+	}
+	if (timeMessage === 'at Invalid date') {
+		timeMessage = '';
+	}
+	switch (/\d/.test(arrHos[10])) {
+		case false: {
+			let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+			return message;
 		}
-		else {
-			let mutaidBool = true;
-			let checkMUTAID = location.split(' ');
-			if (checkMUTAID[1] === 'COUNTY') {
-				mutaidBool = false;
-			}
-			if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
-				let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
-				return message;
-			}
-			else if (testCode[code] && mcdCode[justMCD] && code === 'MUTAID') {
-				let message = (`${testCode[code]} to ${mcdCode[justMCD]} at ${time}`);
-				return message;
+		default: {
+			let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
+			return message;
+		}
+	}
+}
+
+function getFreeUnit(separated) {
+	let unit = (separated[8].slice(5));
+	switch(unit.charAt(unit.length - 1)) {
+		case 'M' :  {
+			return (unitCode[unit]);
+			break
+		}
+		case 'A' :  {
+			return false;
+			break
+		}
+		default: {
+			if (unitCode[unit]) {
+				return (unitCode[unit]);
 			}
 			else {
-				return (`an emergency call at ${time}${cross}`)
+				return 'We';
 			}
 		}
 	}
+	return 'test';
+}
 
-	function freesMessage(separated, address, incidentNumber, municipalCode, unit) {
-		const justMCD = municipalCode.slice(0,2);
-		let code = '99';
-		let time = separated[7];
-		time = time.slice(5);
-		let arrHos = separated[6];
-		let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
-		let location = addressMinusNumbers(address, code);
-		let checkMUTAID = location.split(' ');
-		let endMessage = 'Caution- other responders may still be in the area.';
-		if (checkMUTAID[1] === 'COUNTY') {
-			location = 'mutual aid';
-			endMessage = '';
-		}
-		if (timeMessage === 'at Invalid date') {
-			timeMessage = '';
-		}
-		switch (/\d/.test(arrHos[10])) {
-			case false: {
-				let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-				return message;
-			}
-			default: {
-				let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-				return message;
-			}
-		}
-	}
-
-	function getFreeUnit(separated) {
-		let unit = (separated[8].slice(5));
-		switch(unit.charAt(unit.length - 1)) {
-			case 'M' :  {
-				return (unitCode[unit]);
-				break
-			}
-			case 'A' :  {
-				return false;
-				break
-			}
-			default: {
-				if (unitCode[unit]) {
-					return (unitCode[unit]);
-				}
-				else {
-					return 'We';
-				}
-			}
-		}
-		return 'test';
-	}
-
-	alerts.map((i) => {
+alerts.map((i) => {
 	//	console.log(`This is i - ${i}`);
-		if(i.includes('Lat/Lon')) {
-			let separated = separateByNewLine(i);
-			let incidentNumber = getIncidentNumber(i);
-			let code = getDispatchCode(i);
-			let tempAddress = addressFromDispatch(separated)
-			let address = tempAddress.addressSlice;
-			let municipalCode = tempAddress.split;
-			let cross = crossStreet(separated);
-			let time = dispatchTime(separated);
-			let translated = codeTranslate(code, municipalCode, time, cross, address);
-			dispatches.push({incidentNumber, code, address, cross, municipalCode, time, translated});
-		}
-		else if (!i.includes('Lat/Lon')) {
+	if(i.includes('Lat/Lon')) {
+		let separated = separateByNewLine(i);
+		let incidentNumber = getIncidentNumber(i);
+		let code = getDispatchCode(i);
+		let tempAddress = addressFromDispatch(separated)
+		let address = tempAddress.addressSlice;
+		let municipalCode = tempAddress.split;
+		let cross = crossStreet(separated);
+		let time = dispatchTime(separated);
+		let translated = codeTranslate(code, municipalCode, time, cross, address);
+		dispatches.push({incidentNumber, code, address, cross, municipalCode, time, translated});
+	}
+	else if (!i.includes('Lat/Lon')) {
 		//	console.log(`Else Statement`);
-			let separated = separateByNewLine(i);
-			let incidentNumber = getIncidentNumber(i);
-			let enrouteSlice = checkEnroute(i);
-			let tempAddress = addressFromFree(separated)
-			let address = tempAddress.addressSlice;
-			let municipalCode = tempAddress.split;
-			let unit = getFreeUnit(separated);
-			let message = freesMessage(separated, address, incidentNumber, municipalCode, unit);
-			if (enrouteSlice && unit) {
-				frees.push({ index: `${incidentNumber} - ${unit}`, address, municipalCode, message, unit});
-			}
+		let separated = separateByNewLine(i);
+		let incidentNumber = getIncidentNumber(i);
+		let enrouteSlice = checkEnroute(i);
+		let tempAddress = addressFromFree(separated)
+		let address = tempAddress.addressSlice;
+		let municipalCode = tempAddress.split;
+		let unit = getFreeUnit(separated);
+		let message = freesMessage(separated, address, incidentNumber, municipalCode, unit);
+		if (enrouteSlice && unit) {
+			frees.push({ index: `${incidentNumber} - ${unit}`, address, municipalCode, message, unit});
 		}
-	});
-	const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
-	const uniqueFrees = frees.filter((object,index) => index === frees.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
-	return {uniqueDispatches, frees};
+	}
+});
+const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
+const uniqueFrees = frees.filter((object,index) => index === frees.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
+return {uniqueDispatches, frees};
 }
 
 async function mainProgram() {
-	//console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
-	let x = await getAlertList();
-	let formatted = await formatList(x);
+	console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
+	let x = await getAlertList().catch(e => console.log('Error: ', e.message));
+	let formatted = await formatList(x).catch(e => console.log('Error: ', e.message));
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(`${i.incidentNumber}-${i.code}`)) {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-			Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
-				if (error) {
-					console.log(`Error- ${error} for ${dispatchMessage}`);
-				}
-			});
+			/*	Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+					if (error) {
+						console.log(`Error- ${error} for ${dispatchMessage}`);
+					}
+				}); */
 
 
 
-			console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
+				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
 
-		}
+			}
 
 			sentDispatch.push(`${i.incidentNumber}-${i.code}`);
 
@@ -495,17 +503,17 @@ async function mainProgram() {
 			let freeMessage = (`${i.message}`);
 
 			/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
-				if (error) {
-					console.log(`Error- ${error} for ${freeMessage}`);
-				}
-			}); */
+			if (error) {
+			console.log(`Error- ${error} for ${freeMessage}`);
+		}
+	}); */
 
-				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
-				sentFrees.push(i.index);
-			}
-		});
+	console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
+	sentFrees.push(i.index);
+}
+});
 
-	}
+}
 
-	mainProgram();
-	setInterval(mainProgram, 180000);
+mainProgram();
+setInterval(mainProgram, 180000);
