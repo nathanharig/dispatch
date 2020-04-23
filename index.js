@@ -480,11 +480,11 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNumber}-${i.code}`)) {
 			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-			/*	Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
-				}); */
+				});
 
 
 
@@ -501,11 +501,11 @@ async function mainProgram() {
 		if (!sentFrees.includes(i.index)) {
 			let freeMessage = (`${i.message}`);
 
-			 Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
+			/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
 			if (error) {
 			console.log(`Error- ${error} for ${freeMessage}`);
 		}
-	}); 
+	}); */
 
 	console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
 	sentFrees.push(i.index);
