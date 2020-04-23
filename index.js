@@ -243,7 +243,6 @@ async function formatList(alerts) {
 		if (code[3] === 'U'){
 			codeSlice = 'MUTAID';
 		}
-		console.log(`codeSlice- ${codeSlice}`);
 		if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
 			return address.trim();
 		}
@@ -502,11 +501,11 @@ async function mainProgram() {
 		if (!sentFrees.includes(i.index)) {
 			let freeMessage = (`${i.message}`);
 
-			/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
+			 Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
 			if (error) {
 			console.log(`Error- ${error} for ${freeMessage}`);
 		}
-	}); */
+	}); 
 
 	console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
 	sentFrees.push(i.index);
