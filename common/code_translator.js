@@ -24,7 +24,7 @@ function makeCodes() {
 		'inaccessible incident / entrapments ': 'Reported non-vehicle rescue',
 		'overdose / poisoning': 'DNS',
 		'ob/gyn': 'DNS',//'a reported obstetrical emergency',
-		'pyschiatric patient': 'DNS',//'a reported behavioral emergency',
+		'psych patient': 'DNS',//'a reported behavioral emergency',
 		'sick person': 'DNS',//'a reported sick person',
 		'stab / gunshot': 'DNS',
 		'stroke': 'DNS',//'a reported stroke',
