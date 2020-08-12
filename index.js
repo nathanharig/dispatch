@@ -105,7 +105,7 @@ async function authorize(credentials, callback) {
 					auth: auth,
 					userId: 'me',
 					maxResults: 10,
-					q: 'label:Dispatch -PAGERA40 -PAGERM40 +MI#',
+					q: 'label:Dispatch -AVAILABLE -ROUTINE +MI#',
 				}, async function (err, response, callback) {
 					if (err) {
 						reject(err);
@@ -140,7 +140,7 @@ async function authorize(credentials, callback) {
 							//	console.log(`Response- ${response.data.payload.body.data}`);
 							let decoded = atob(response.data.payload.body.data);
 
-							//		console.log(`Decoded - ${decoded}`);
+								//console.log(`Decoded - ${decoded}`);
 							if (decoded == '')
 							{
 								console.log('BLANK');
@@ -165,7 +165,6 @@ async function authorize(credentials, callback) {
 
 async function formatList(alerts) {
 	let dispatches = [];
-	let frees = [];
 	let { makeCodes, municipalCodeMaker, unitCodeMaker } = code_translator;
 	let testCode = makeCodes();
 	let mcdCode = municipalCodeMaker();
@@ -173,77 +172,51 @@ async function formatList(alerts) {
 
 	function separateByNewLine(i)
 	{
-		let separated = i.split('\r\n');
-		//	console.log(`Split- ${i.split('\r')}`);
+		let indexAlarm = i.indexOf('Alarm:');
+		let indexLoc = i.indexOf('Loc:');
+		let indexX = i.indexOf('X:');
+		let indexLatLon = i.indexOf('Lat/Lon:');
+		let indexTime = i.indexOf('Time:');
+		let indexMI = i.indexOf('MI#:');
+		let indexDisp = i.indexOf('Disp:')
+		let indexBox = i.indexOf('Box:');
+		let dispatchCodeSlice = i.slice(0, indexAlarm-1);
+		let alarmSlice = i.slice(indexAlarm+7, indexLoc-1);
+		let addressSlice = i.slice(indexLoc+5, indexX-1);
+		let testForCommonLoc = addressSlice.split('@');
+		if (testForCommonLoc[1]) {
+		//	console.log(`CommonLoc @ Sign - ${testForCommonLoc}`);
+			addressSlice = testForCommonLoc[0].split(':');
+			addressSlice = addressSlice[0];
+		}
+		let muniSlice = addressSlice.slice(addressSlice.length-7, addressSlice.length);
+		let addressSliceSplit = addressSlice.split(muniSlice);
+		addressSlice = addressSliceSplit[0];
+		addressSlice = addressSlice.slice(0, addressSlice.length-1);
+		let muniSplit = muniSlice.split(' ');
+		let mcdSlice = muniSplit[0];
+		let countySlice = muniSplit[1];
+		// console.log(`Muni Split - ${muniSplit}`);
+		let crossStreetSlice = i.slice(indexX+3, indexBox-1);
+		let crossStreetSplit = crossStreetSlice.split('/');
+		let crossStreetOne = crossStreetSplit[0].trim();
+		let crossStreetTwo = `and ${crossStreetSplit[1].trim()}`;
+		if (crossStreetSplit[0] === crossStreetSplit[1]) {
+			crossStreetTwo = '';
+		}
+
+		let timeSlice = i.slice(indexTime+6, indexMI-1);
+		let miSlice = i.slice(indexMI+5, indexDisp-1).trim();
+		let unitSlice = i.slice(indexDisp+6, i.length);
+		let unitSplit = unitSlice.split(',');
+		let unit = unitSplit[0];
+
+		let separated = {code: dispatchCodeSlice, alarm: alarmSlice, address: addressSlice, mcd: mcdSlice, county: countySlice, cross: `${crossStreetOne} ${crossStreetTwo}`, time: timeSlice, incidentNum: miSlice, unit: unit};
 		return separated;
 	}
 
-	function getIncidentNumber(i) {
-		let x = i.indexOf('MI#:');
-		let incidentNumber = i.slice(x+4, x+13);
-		return incidentNumber;
-	}
-
-	function checkEnroute(i) {
-		let enrouteIndex = i.indexOf('Enr#:');
-		let enrouteSlice = i.slice(enrouteIndex + 5, enrouteIndex + 6);
-		if (enrouteSlice.match(/\d/)) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	function getDispatchCode(i) {
-
-		let code = i.split(' ', 1)
-		return code[0];
-	}
-
-	function addressFromDispatch(separated){
-		let addressLine = separated[1];
-		let semicolonIndex = separated[1].indexOf(';');
-		let addressSlice = separated[1].slice(0, semicolonIndex);
-		let splitComma = addressSlice.split(',', 2);
-
-		return {addressSlice: splitComma[0], split: splitComma[1]};
-	}
-
-	function addressFromFree(separated){
-		let addressLine = separated[0];
-		let semicolonIndex = separated[0].indexOf(';');
-		let addressSlice = separated[0].slice(0, semicolonIndex);
-		let splitComma = addressSlice.split(',', 2);
-		return {addressSlice: splitComma[0], split: splitComma[1]};
-	}
-
-	function crossStreet(separated) {
-		let crossStreetLine = separated[3];
-		let colonIndex = separated[3].indexOf(':');
-		let crossStreetSliceOne = separated[3].slice(colonIndex + 1);
-		if (crossStreetSliceOne.indexOf('/') === crossStreetSliceOne.length - 2) {
-			let crossStreetSliceTwo = crossStreetSliceOne.slice(0, crossStreetSliceOne.indexOf('/'));
-			return crossStreetSliceTwo
-		}
-		else {
-			return crossStreetSliceOne;
-		}
-	}
-
-	function dispatchTime(separated) {
-		let timeLine = separated[6];
-		let timeSlice = timeLine.slice(5)
-		let timeSplit = timeSlice.split(' ', 2);
-		return (moment(timeSlice, 'YYYY-MM-DD HH:mm:ss').format("M/D/YY h:mma"))
-	}
-
-	function addressMinusNumbers(address, code){
-		var codeSlice = code.slice(0,2);
-		if (code[3] === 'U'){
-			codeSlice = 'MUTAID';
-		}
-		if (address.includes('I 81') || address.includes('COUNTY') || /\D/.test(address[0]) || address.includes('I 76') || codeSlice === '29' || /\D/.test(code[0]) && code[0] != "E" ){
+	function addressMinusNumbers(address, code) {
+		if (address.includes('I 81') || /\D/.test(address[0]) || address.includes('I 76') || code === 'T/A'){
 			return address.trim();
 		}
 		else {
@@ -253,18 +226,68 @@ async function formatList(alerts) {
 		}
 	}
 
-	function codeTranslate(code, muncipalCode, time, cross, address) {
-		let location = addressMinusNumbers(address, code);
-		if (/\d/.test(address[0]) && cross && cross != ' ') {
-			cross = ` near ${cross}`;
+	function codeMinusClass(code) {
+		code = code.trim();
+		let codeSplit = code.split('CLASS');
+		code = codeSplit[0].trim();
+		let newClass = codeSplit[1];
+		newClass = newClass.trim();
+		let newCode = {code, newClass};
+		return newCode;
+	}
+
+	function codeTranslate(code, mcd, county, time, cross, address, alarm) {
+		let location = addressMinusNumbers(address);
+		let newCode = codeMinusClass(code);
+		let workingCode = newCode.code;
+		workingCode = workingCode.toLowerCase();
+		switch(alarm){
+			case '1': {
+				alarm = ', 1st alarm,';
+				break;
+			}
+			case '2': {
+				alarm = ', 2nd alarm,';
+				break;
+			}
+			case '3': {
+				alarm = ', 3rd alarm,';
+				break;
+			}
+			case '4': {
+				alarm = ', 4th alarm,';
+				break;
+			}
+			default: {
+				alarm = '';
+			}
+		}
+		let testClass = newCode.class;
+		if (location == '' || location == ' ') {
+			location = '';
 		}
 		else {
-			cross = '';
+			location = `area of ${location},`;
+			location = location.trim();
 		}
+		let messageCode = testCode[workingCode];
+		if (testClass != '1' && messageCode.includes('arrest')) {
+			messageCode = 'Reported expiration';
+		}
+		const justMCD = mcd;
 
-		const justMCD = muncipalCode.slice(0,2);
+				if (messageCode === 'DNS') {
+					return 'DNS';
+				}
+				let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}near ${cross} - ${time}`);
+				if(testCode[workingCode] && mcdCode[justMCD]) {
+					return message;
+				}
+				else {
+					return (`an emergency call - ${time}`)
+				}
 
-		if (/\d/.test(code[0]))	{
+	/*	if (/\d/.test(code[0]))	{
 			tempCode = code.slice(0,2);
 			codeWithModifier = code.slice(0,3);
 			codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
@@ -351,7 +374,7 @@ async function formatList(alerts) {
 }
 break;
 }
-*/
+
 default: {
 	if (testCode[tempCode] === 'DNS') {
 		return 'DNS';
@@ -384,92 +407,16 @@ else {
 		return (`an emergency call at ${time}${cross}`)
 	}
 }
-}
-
-function freesMessage(separated, address, incidentNumber, municipalCode, unit) {
-	const justMCD = municipalCode.slice(0,2);
-	let code = '99';
-	let time = separated[7];
-	time = time.slice(5);
-	let arrHos = separated[6];
-	let timeMessage = `at ${moment(time, 'HH:mm:ss').format("h:mma")}`
-	let location = addressMinusNumbers(address, code);
-	let checkMUTAID = location.split(' ');
-	let endMessage = 'Caution- other responders may still be in the area.';
-	if (checkMUTAID[1] === 'COUNTY') {
-		location = 'mutual aid';
-		endMessage = '';
-	}
-	if (timeMessage === 'at Invalid date') {
-		timeMessage = '';
-	}
-	switch (/\d/.test(arrHos[10])) {
-		case false: {
-			let message = `Update: ${incidentNumber} - ${unit} cleared: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-			return message;
-		}
-		default: {
-			let message = `Update: ${incidentNumber} - ${unit} cleared, pt(s) transported: ${mcdCode[justMCD]}, ${location} ${timeMessage}. ${endMessage}`;
-			return message;
-		}
-	}
-}
-
-function getFreeUnit(separated) {
-	let unit = (separated[8].slice(5));
-	switch(unit.charAt(unit.length - 1)) {
-		case 'M' :  {
-			return (unitCode[unit]);
-			break
-		}
-		case 'A' :  {
-			return false;
-			break
-		}
-		default: {
-			if (unitCode[unit]) {
-				return (unitCode[unit]);
-			}
-			else {
-				return 'We';
-			}
-		}
-	}
-	return 'test';
+*/
 }
 
 alerts.map((i) => {
-	//	console.log(`This is i - ${i}`);
-	if(i.includes('Lat/Lon')) {
-		let separated = separateByNewLine(i);
-		let incidentNumber = getIncidentNumber(i);
-		let code = getDispatchCode(i);
-		let tempAddress = addressFromDispatch(separated)
-		let address = tempAddress.addressSlice;
-		let municipalCode = tempAddress.split;
-		let cross = crossStreet(separated);
-		let time = dispatchTime(separated);
-		let translated = codeTranslate(code, municipalCode, time, cross, address);
-		dispatches.push({incidentNumber, code, address, cross, municipalCode, time, translated});
-	}
-	else if (!i.includes('Lat/Lon')) {
-		//	console.log(`Else Statement`);
-		let separated = separateByNewLine(i);
-		let incidentNumber = getIncidentNumber(i);
-		let enrouteSlice = checkEnroute(i);
-		let tempAddress = addressFromFree(separated)
-		let address = tempAddress.addressSlice;
-		let municipalCode = tempAddress.split;
-		let unit = getFreeUnit(separated);
-		let message = freesMessage(separated, address, incidentNumber, municipalCode, unit);
-		if (enrouteSlice && unit) {
-			frees.push({ index: `${incidentNumber} - ${unit}`, address, municipalCode, message, unit});
-		}
-	}
+		let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
+		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm);
+		dispatches.push({incidentNum, code, address, cross, mcd, time, translated});
 });
 const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
-const uniqueFrees = frees.filter((object,index) => index === frees.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
-return {uniqueDispatches, frees};
+return {uniqueDispatches};
 }
 
 async function mainProgram() {
@@ -477,26 +424,31 @@ async function mainProgram() {
 	let x = await getAlertList().catch(e => console.log('Error: ', e.message));
 	let formatted = await formatList(x).catch(e => console.log('Error: ', e.message));
 	formatted.uniqueDispatches.forEach((i) => {
-		if (!sentDispatch.includes(`${i.incidentNumber}-${i.code}`)) {
-			let dispatchMessage = (`${i.incidentNumber}: Dispatch- ${i.translated}`);
+		if (!sentDispatch.includes(`${i.incidentNum}-${i.code}`)) {
+			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+				/* Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
-				});
+				}); */
 
 
 
 				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
 
 			}
+			else {
+				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum}\n\n`);
 
-			sentDispatch.push(`${i.incidentNumber}-${i.code}`);
+			}
+
+			sentDispatch.push(`${i.incidentNum}-${i.code}`);
 
 		}
 
 	});
+	/*
 	formatted.frees.forEach((i) => {
 		if (!sentFrees.includes(i.index)) {
 			let freeMessage = (`${i.message}`);
@@ -505,13 +457,13 @@ async function mainProgram() {
 			if (error) {
 			console.log(`Error- ${error} for ${freeMessage}`);
 		}
-	}); */
+	});
 
 	console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
 	sentFrees.push(i.index);
 }
 });
-
+*/
 }
 
 mainProgram();
