@@ -429,11 +429,11 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.code}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				/* Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+				 Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
-				}); */
+				});
 
 
 
