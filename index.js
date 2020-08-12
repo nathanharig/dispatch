@@ -267,7 +267,7 @@ async function formatList(alerts) {
 			location = '';
 		}
 		else {
-			location = `area of ${location},`;
+			location = `${location},`;
 			location = location.trim();
 		}
 		let messageCode = testCode[workingCode];
@@ -275,7 +275,6 @@ async function formatList(alerts) {
 			messageCode = 'Reported expiration';
 		}
 		const justMCD = mcd;
-
 				if (messageCode === 'DNS') {
 					return 'DNS';
 				}
@@ -431,7 +430,7 @@ async function mainProgram() {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
-				}); 
+				});
 
 
 
