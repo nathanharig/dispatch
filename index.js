@@ -415,7 +415,7 @@ else {
 alerts.map((i) => {
 		let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
 		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm, unit);
-		dispatches.push({incidentNum, code, address, cross, mcd, time, alarm, unit, translated});
+		dispatches.push({incidentNum, code, address, cross, mcd, time, translated, alarm, unit});
 });
 const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
 return {uniqueDispatches};
@@ -429,19 +429,19 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.code}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				 Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+				/* Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
-				});
+				}); */
 
 
 
-				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} UNIT: ${unit}\n\n`);
+				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
 
 			}
 			else {
-				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} ${unit}\n\n`);
+				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} // ${i.unit}\n\n`);
 
 			}
 
