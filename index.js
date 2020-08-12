@@ -415,7 +415,7 @@ else {
 alerts.map((i) => {
 		let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
 		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm, unit);
-		dispatches.push({incidentNum, code, address, cross, mcd, time, translated});
+		dispatches.push({incidentNum, code, address, cross, mcd, time, alarm, unit, translated});
 });
 const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
 return {uniqueDispatches};
