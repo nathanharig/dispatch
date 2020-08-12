@@ -236,7 +236,7 @@ async function formatList(alerts) {
 		return newCode;
 	}
 
-	function codeTranslate(code, mcd, county, time, cross, address, alarm) {
+	function codeTranslate(code, mcd, county, time, cross, address, alarm, unit) {
 		let location = addressMinusNumbers(address);
 		let newCode = codeMinusClass(code);
 		let workingCode = newCode.code;
@@ -276,6 +276,9 @@ async function formatList(alerts) {
 		}
 		const justMCD = mcd;
 				if (messageCode === 'DNS') {
+					return 'DNS';
+				}
+				if (unit === 'PAGERA40' || unit === 'PAGERM40') {
 					return 'DNS';
 				}
 				let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}near ${cross} - ${time}`);
@@ -411,7 +414,7 @@ else {
 
 alerts.map((i) => {
 		let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
-		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm);
+		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm, unit);
 		dispatches.push({incidentNum, code, address, cross, mcd, time, translated});
 });
 const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
@@ -434,11 +437,11 @@ async function mainProgram() {
 
 
 
-				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage}\n\n`);
+				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} UNIT: ${unit}\n\n`);
 
 			}
 			else {
-				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum}\n\n`);
+				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} ${unit}\n\n`);
 
 			}
 
