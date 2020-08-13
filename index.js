@@ -140,7 +140,7 @@ async function authorize(credentials, callback) {
 							//	console.log(`Response- ${response.data.payload.body.data}`);
 							let decoded = atob(response.data.payload.body.data);
 
-								//console.log(`Decoded - ${decoded}`);
+							// console.log(`Decoded - ${decoded}`);
 							if (decoded == '')
 							{
 								console.log('BLANK');
@@ -185,7 +185,7 @@ async function formatList(alerts) {
 		let addressSlice = i.slice(indexLoc+5, indexX-1);
 		let testForCommonLoc = addressSlice.split('@');
 		if (testForCommonLoc[1]) {
-		//	console.log(`CommonLoc @ Sign - ${testForCommonLoc}`);
+			//	console.log(`CommonLoc @ Sign - ${testForCommonLoc}`);
 			addressSlice = testForCommonLoc[0].split(':');
 			addressSlice = addressSlice[0];
 		}
@@ -271,153 +271,158 @@ async function formatList(alerts) {
 			location = location.trim();
 		}
 		let messageCode = testCode[workingCode];
+
+		if (!testCode[workingCode]) {
+			messageCode = 'an EMS call';
+		}
+		//console.log(`Message Code - ${messageCode}`);
 		if (testClass != '1' && messageCode.includes('arrest')) {
 			messageCode = 'Reported expiration';
 		}
 		const justMCD = mcd;
-				if (messageCode === 'DNS') {
-					return 'DNS';
-				}
-				if (unit === 'PAGERA40' || unit === 'PAGERM40') {
-					return 'DNS';
-				}
-				let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}near ${cross} - ${time}`);
-				if(testCode[workingCode] && mcdCode[justMCD]) {
-					return message;
-				}
-				else {
-					return (`an emergency call - ${time}`)
-				}
+		if (messageCode === 'DNS') {
+			return 'DNS';
+		}
+		if (unit === 'PAGERA40' || unit === 'PAGERM40') {
+			return 'DNS';
+		}
+		let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}near ${cross} - ${time}`);
+		if(testCode[workingCode] && mcdCode[justMCD]) {
+			return message;
+		}
+		else {
+			return (`an EMS call - ${time}`)
+		}
 
-	/*	if (/\d/.test(code[0]))	{
-			tempCode = code.slice(0,2);
-			codeWithModifier = code.slice(0,3);
-			codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
-			switch(tempCode) {
-				case '09': {
-					if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
-					{
-						let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
-						return message;
-					}
-					else {
-						if(testCode[tempCode]) {
-							let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
-							return message;
-						}
-						else {
-							return ('an emergency call - ' + time);
-						}
-					}
-					break;
-				}
-				case '29': {
-					if(testCode[tempCode]) {
-						let crashMessage = ((aCode, messageCode) => {
-							switch(aCode) {
-								case '29D02m':
-								return 'Reported pedestrian(s) struck';
-								break;
-								case '29D02l':
-								return 'Reported vehicle/bike/motorcycle crash';
-								break;
-								case '29D01h':
-								return 'Reported vehicle vs a structure crash';
-								break;
-								default:
-								return `${messageCode}`;
-							}
-						})(code, testCode[tempCode]);
-						let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
-						return message;
-					}
-					else {
-						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
-					}
-					break
-				}
-				case '20': {
-					if(testCode[tempCode]) {
-						let crashMessage = ((aCode, messageCode) => {
-							switch(aCode[aCode.length-1]) {
-								case 'C':
-								return 'Reported hypothermia or cold-related emergency';
-								break;
-								case 'H':
-								return 'Reported hyperthermia or heat-related emergency';
-								default:
-								return `${messageCode}`;
-							}
-						})(code, testCode[tempCode]);
-						let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
-						return message;
-					}
-					else {
-						return ('an emergency call - ' + time + ' expect delays and be alert for responders');
-					}
-					break
-				}
-				/* case '27':  {
-				if(testCode[tempCode]) {
-				let shootingMessage = ((aCode, messageCode) => {
-				switch(aCode) {
-				case 'G': return 'Reported patient(s) who have been shot';
-				break;
-				case 'S':	return 'Reported patient(s) who have been stabbed)';
-				break;
-				default : return `${messageCode}`;
-			}
-		})(code[code.length-1], testCode[tempCode]);
-		let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
+		/*	if (/\d/.test(code[0]))	{
+		tempCode = code.slice(0,2);
+		codeWithModifier = code.slice(0,3);
+		codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
+		switch(tempCode) {
+		case '09': {
+		if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
+		{
+		let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 		return message;
 	}
 	else {
-	return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+	if(testCode[tempCode]) {
+	let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
+	return message;
+}
+else {
+return ('an emergency call - ' + time);
+}
+}
+break;
+}
+case '29': {
+if(testCode[tempCode]) {
+let crashMessage = ((aCode, messageCode) => {
+switch(aCode) {
+case '29D02m':
+return 'Reported pedestrian(s) struck';
+break;
+case '29D02l':
+return 'Reported vehicle/bike/motorcycle crash';
+break;
+case '29D01h':
+return 'Reported vehicle vs a structure crash';
+break;
+default:
+return `${messageCode}`;
+}
+})(code, testCode[tempCode]);
+let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
+return message;
+}
+else {
+return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+}
+break
+}
+case '20': {
+if(testCode[tempCode]) {
+let crashMessage = ((aCode, messageCode) => {
+switch(aCode[aCode.length-1]) {
+case 'C':
+return 'Reported hypothermia or cold-related emergency';
+break;
+case 'H':
+return 'Reported hyperthermia or heat-related emergency';
+default:
+return `${messageCode}`;
+}
+})(code, testCode[tempCode]);
+let message = (`${crashMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, expect delays/be alert for responders`);
+return message;
+}
+else {
+return ('an emergency call - ' + time + ' expect delays and be alert for responders');
+}
+break
+}
+/* case '27':  {
+if(testCode[tempCode]) {
+let shootingMessage = ((aCode, messageCode) => {
+switch(aCode) {
+case 'G': return 'Reported patient(s) who have been shot';
+break;
+case 'S':	return 'Reported patient(s) who have been stabbed)';
+break;
+default : return `${messageCode}`;
+}
+})(code[code.length-1], testCode[tempCode]);
+let message = (`${shootingMessage}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}, avoid the area/be alert for responders`);
+return message;
+}
+else {
+return ('an emergency call - ' + time + ' expect delays and be alert for responders');
 }
 break;
 }
 
 default: {
-	if (testCode[tempCode] === 'DNS') {
-		return 'DNS';
-	}
-	let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
-	if(testCode[tempCode] && mcdCode[justMCD]) {
-		return message;
-	}
-	else {
-		return (`an emergency call - ${time}`)
-	}
+if (testCode[tempCode] === 'DNS') {
+return 'DNS';
+}
+let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
+if(testCode[tempCode] && mcdCode[justMCD]) {
+return message;
+}
+else {
+return (`an emergency call - ${time}`)
+}
 }
 }
 }
 else {
-	let mutaidBool = true;
-	let checkMUTAID = location.split(' ');
-	if (checkMUTAID[1] === 'COUNTY') {
-		mutaidBool = false;
-	}
-	if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
-		let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
-		return message;
-	}
-	else if (testCode[code] && mcdCode[justMCD] && code === 'MUTAID') {
-		let message = (`${testCode[code]} to ${mcdCode[justMCD]} at ${time}`);
-		return message;
-	}
-	else {
-		return (`an emergency call at ${time}${cross}`)
-	}
+let mutaidBool = true;
+let checkMUTAID = location.split(' ');
+if (checkMUTAID[1] === 'COUNTY') {
+mutaidBool = false;
+}
+if(testCode[code] && mcdCode[justMCD] && testCode[code] != 'MUTAID' && mutaidBool) {
+let message = (`${testCode[code]}, ${mcdCode[justMCD]} area of ${location}${cross} at ${time}`);
+return message;
+}
+else if (testCode[code] && mcdCode[justMCD] && code === 'MUTAID') {
+let message = (`${testCode[code]} to ${mcdCode[justMCD]} at ${time}`);
+return message;
+}
+else {
+return (`an emergency call at ${time}${cross}`)
+}
 }
 */
 }
 
 alerts.map((i) => {
-		let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
-		let translated = codeTranslate(code, mcd, county, time, cross, address, alarm, unit);
-		dispatches.push({incidentNum, code, address, cross, mcd, time, translated, alarm, unit});
+	let {code, alarm, address, mcd, county, cross, time, incidentNum, unit} = separateByNewLine(i);
+	let translated = codeTranslate(code, mcd, county, time, cross, address, alarm, unit);
+	dispatches.push({incidentNum, code, address, cross, mcd, time, translated, alarm, unit});
 });
-const uniqueDispatches = dispatches.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
+const uniqueDispatches = dispatches //.filter((object,index) => index === dispatches.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object)));
 return {uniqueDispatches};
 }
 
@@ -425,44 +430,45 @@ async function mainProgram() {
 	console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
 	let x = await getAlertList().catch(e => console.log('Error: ', e.message));
 	let formatted = await formatList(x).catch(e => console.log('Error: ', e.message));
+	//console.log(formatted);
 	formatted.uniqueDispatches.forEach((i) => {
-		if (!sentDispatch.includes(`${i.incidentNum}-${i.code}`)) {
+		if (!sentDispatch.includes(`${i.incidentNum}-${i.time}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				 Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
-					if (error) {
-						console.log(`Error- ${error} for ${dispatchMessage}`);
-					}
-				});
-
-
-
-				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
-
+					 Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+				if (error) {
+				console.log(`Error- ${error} for ${dispatchMessage}`);
 			}
-			else {
-				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} // ${i.unit}\n\n`);
+		});
 
-			}
 
-			sentDispatch.push(`${i.incidentNum}-${i.code}`);
 
-		}
+		console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
 
-	});
-	/*
-	formatted.frees.forEach((i) => {
-		if (!sentFrees.includes(i.index)) {
-			let freeMessage = (`${i.message}`);
+	}
+	else {
+		console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} // ${i.unit}\n\n`);
 
-			/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
-			if (error) {
-			console.log(`Error- ${error} for ${freeMessage}`);
-		}
-	});
+	}
 
-	console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
-	sentFrees.push(i.index);
+	sentDispatch.push(`${i.incidentNum}-${i.time}`);
+
+}
+
+});
+/*
+formatted.frees.forEach((i) => {
+if (!sentFrees.includes(i.index)) {
+let freeMessage = (`${i.message}`);
+
+/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
+if (error) {
+console.log(`Error- ${error} for ${freeMessage}`);
+}
+});
+
+console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${freeMessage}\n\n`);
+sentFrees.push(i.index);
 }
 });
 */

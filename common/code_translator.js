@@ -32,7 +32,7 @@ function makeCodes() {
 		'traffic / transportation incidents': 'Reported vehicle crash',
 		'traffic accident': 'Reported vehicle crash',
 		't/a': 'Reported vehicle crash',
-		'traumatic': 'Reported injury',
+		'traumatic innjury': 'Reported injury',
 		'unconscious person': 'DNS',//'a reported unconscious person',
 		'unknown conditions': 'An unknown problem',
 		'inter-facility transfer': 'Reported need for transportation only',
