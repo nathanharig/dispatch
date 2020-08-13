@@ -185,7 +185,6 @@ async function formatList(alerts) {
 		let addressSlice = i.slice(indexLoc+5, indexX-1);
 		let testForCommonLoc = addressSlice.split('@');
 		if (testForCommonLoc[1]) {
-			//	console.log(`CommonLoc @ Sign - ${testForCommonLoc}`);
 			addressSlice = testForCommonLoc[0].split(':');
 			addressSlice = addressSlice[0];
 		}
@@ -196,11 +195,16 @@ async function formatList(alerts) {
 		let muniSplit = muniSlice.split(' ');
 		let mcdSlice = muniSplit[0];
 		let countySlice = muniSplit[1];
-		// console.log(`Muni Split - ${muniSplit}`);
+	//	console.log(`Muni Split - ${muniSplit}`);
 		let crossStreetSlice = i.slice(indexX+3, indexBox-1);
 		let crossStreetSplit = crossStreetSlice.split('/');
 		let crossStreetOne = crossStreetSplit[0].trim();
-		let crossStreetTwo = `and ${crossStreetSplit[1].trim()}`;
+
+		let crossStreetTwo = ''
+		if (crossStreetSplit[1]){
+
+			crossStreetTwo= `and ${crossStreetSplit[1].trim()}`;
+		}
 		if (crossStreetSplit[0] === crossStreetSplit[1]) {
 			crossStreetTwo = '';
 		}
@@ -210,13 +214,16 @@ async function formatList(alerts) {
 		let unitSlice = i.slice(indexDisp+6, i.length);
 		let unitSplit = unitSlice.split(',');
 		let unit = unitSplit[0];
+		//	console.log(`dispatchCodeSlice- ${dispatchCodeSlice}, alarm- ${alarmSlice}, address- ${addressSlice}, mcd- ${mcdSlice}, county ${countySlice}, cross- ${crossStreetOne} ${crossStreetTwo}, time- ${timeSlice}, incidentNum- ${miSlice}, unit- ${unit}`);
 
 		let separated = {code: dispatchCodeSlice, alarm: alarmSlice, address: addressSlice, mcd: mcdSlice, county: countySlice, cross: `${crossStreetOne} ${crossStreetTwo}`, time: timeSlice, incidentNum: miSlice, unit: unit};
 		return separated;
 	}
 
 	function addressMinusNumbers(address, code) {
-		if (address.includes('I 81') || /\D/.test(address[0]) || address.includes('I 76') || code === 'T/A'){
+		//console.log(`code- ${code}`);
+		if (address.includes('I 81') || /\D/.test(address[0]) || address.includes('I 76') || code.includes('T/A')) {
+			//	console.log(`Address- ${address}`);
 			return address.trim();
 		}
 		else {
@@ -228,90 +235,94 @@ async function formatList(alerts) {
 
 	function codeMinusClass(code) {
 		code = code.trim();
-		let codeSplit = code.split('CLASS');
-		code = codeSplit[0].trim();
-		let newClass = codeSplit[1];
-		newClass = newClass.trim();
-		let newCode = {code, newClass};
-		return newCode;
-	}
+		let newClass = '';
+		if (code.includes('CLASS')) {
+			let codeSplit = code.split('CLASS');
+			code = codeSplit[0].trim();
+			newClass = codeSplit[1];
+			newClass = newClass.trim();
+		}
+			let newCode = {code, newClass};
+			return newCode;
+		}
 
-	function codeTranslate(code, mcd, county, time, cross, address, alarm, unit) {
-		let location = addressMinusNumbers(address);
-		let newCode = codeMinusClass(code);
-		let workingCode = newCode.code;
-		workingCode = workingCode.toLowerCase();
-		switch(alarm){
-			case '1': {
-				alarm = ', 1st alarm,';
-				break;
+		function codeTranslate(code, mcd, county, time, cross, address, alarm, unit) {
+			let location = addressMinusNumbers(address, code);
+			let newCode = codeMinusClass(code);
+			let workingCode = newCode.code;
+			workingCode = workingCode.toLowerCase();
+			//	console.log(workingCode);
+			switch(alarm){
+				case '1': {
+					alarm = ', 1st alarm,';
+					break;
+				}
+				case '2': {
+					alarm = ', 2nd alarm,';
+					break;
+				}
+				case '3': {
+					alarm = ', 3rd alarm,';
+					break;
+				}
+				case '4': {
+					alarm = ', 4th alarm,';
+					break;
+				}
+				default: {
+					alarm = '';
+				}
 			}
-			case '2': {
-				alarm = ', 2nd alarm,';
-				break;
+			let testClass = newCode.class;
+			if (location == '' || location == ' ') {
+				location = '';
 			}
-			case '3': {
-				alarm = ', 3rd alarm,';
-				break;
+			else {
+				location = `${location},`;
+				location = location.trim();
 			}
-			case '4': {
-				alarm = ', 4th alarm,';
-				break;
-			}
-			default: {
-				alarm = '';
-			}
-		}
-		let testClass = newCode.class;
-		if (location == '' || location == ' ') {
-			location = '';
-		}
-		else {
-			location = `${location},`;
-			location = location.trim();
-		}
-		let messageCode = testCode[workingCode];
+			let messageCode = testCode[workingCode];
 
-		if (!testCode[workingCode]) {
-			messageCode = 'an EMS call';
-		}
-		//console.log(`Message Code - ${messageCode}`);
-		if (testClass != '1' && messageCode.includes('arrest')) {
-			messageCode = 'Reported expiration';
-		}
-		const justMCD = mcd;
-		if (messageCode === 'DNS') {
-			return 'DNS';
-		}
-		if (unit === 'PAGERA40' || unit === 'PAGERM40') {
-			return 'DNS';
-		}
-		let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} near ${cross} - ${time}`);
-		if(testCode[workingCode] && mcdCode[justMCD]) {
+			if (!testCode[workingCode]) {
+				messageCode = 'an EMS call';
+			}
+			//console.log(`Message Code - ${messageCode}`);
+			if (testClass != '1' && messageCode.includes('arrest')) {
+				messageCode = 'Reported expiration';
+			}
+			const justMCD = mcd;
+			if (messageCode === 'DNS') {
+				return 'DNS';
+			}
+			if (unit === 'PAGERA40' || unit === 'PAGERM40') {
+				return 'DNS';
+			}
+			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} near ${cross} - ${time}`);
+			if(testCode[workingCode] && mcdCode[justMCD]) {
+				return message;
+			}
+			else {
+				return (`an EMS call - ${time}`)
+			}
+
+			/*	if (/\d/.test(code[0]))	{
+			tempCode = code.slice(0,2);
+			codeWithModifier = code.slice(0,3);
+			codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
+			switch(tempCode) {
+			case '09': {
+			if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
+			{
+			let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 			return message;
 		}
 		else {
-			return (`an EMS call - ${time}`)
-		}
-
-		/*	if (/\d/.test(code[0]))	{
-		tempCode = code.slice(0,2);
-		codeWithModifier = code.slice(0,3);
-		codeWithModifier = codeWithModifier.split((/(\D)/g), 2);
-		switch(tempCode) {
-		case '09': {
-		if (codeWithModifier[1].includes('A') || codeWithModifier[1].includes('B') || codeWithModifier[1].includes('O'))
-		{
-		let message = (`reported expiration, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
+		if(testCode[tempCode]) {
+		let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
 		return message;
 	}
 	else {
-	if(testCode[tempCode]) {
-	let message = (`${testCode[tempCode]}, ${mcdCode[justMCD]} area of ${location}${cross} - ${time}`);
-	return message;
-}
-else {
-return ('an emergency call - ' + time);
+	return ('an emergency call - ' + time);
 }
 }
 break;
@@ -430,40 +441,40 @@ async function mainProgram() {
 	console.log(`###### Dispatch program, running at ${new Date().toLocaleString()} ###### \n\n`);
 	let x = await getAlertList().catch(e => console.log('Error: ', e.message));
 	let formatted = await formatList(x).catch(e => console.log('Error: ', e.message));
-	//console.log(formatted);
+//	console.log(formatted);
 	formatted.uniqueDispatches.forEach((i) => {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.time}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-					 Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
-				if (error) {
-				console.log(`Error- ${error} for ${dispatchMessage}`);
+				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
+					if (error) {
+						console.log(`Error- ${error} for ${dispatchMessage}`);
+					}
+				});
+
+
+
+				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
+
 			}
-		});
+			else {
+				console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} // ${i.unit}\n\n`);
 
+			}
 
+			sentDispatch.push(`${i.incidentNum}-${i.time}`);
 
-		console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
+		}
 
-	}
-	else {
-		console.log(`${moment().format('MM/DD HH:mm')} NOT SENT||-----|| ${dispatchMessage} ${i.code} ${i.incidentNum} // ${i.unit}\n\n`);
+	});
+	/*
+	formatted.frees.forEach((i) => {
+	if (!sentFrees.includes(i.index)) {
+	let freeMessage = (`${i.message}`);
 
-	}
-
-	sentDispatch.push(`${i.incidentNum}-${i.time}`);
-
-}
-
-});
-/*
-formatted.frees.forEach((i) => {
-if (!sentFrees.includes(i.index)) {
-let freeMessage = (`${i.message}`);
-
-/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
-if (error) {
-console.log(`Error- ${error} for ${freeMessage}`);
+	/* Twitter.post('statuses/update', {status: freeMessage}, function(error, tweet, response) {
+	if (error) {
+	console.log(`Error- ${error} for ${freeMessage}`);
 }
 });
 
