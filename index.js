@@ -286,7 +286,7 @@ async function formatList(alerts) {
 		if (unit === 'PAGERA40' || unit === 'PAGERM40') {
 			return 'DNS';
 		}
-		let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}near ${cross} - ${time}`);
+		let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} near ${cross} - ${time}`);
 		if(testCode[workingCode] && mcdCode[justMCD]) {
 			return message;
 		}
