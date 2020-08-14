@@ -180,6 +180,7 @@ async function formatList(alerts) {
 		let indexMI = i.indexOf('MI#:');
 		let indexDisp = i.indexOf('Disp:')
 		let indexBox = i.indexOf('Box:');
+		let cumbIndex = i.indexOf('CUMB');
 		let dispatchCodeSlice = i.slice(0, indexAlarm-1);
 		let alarmSlice = i.slice(indexAlarm+7, indexLoc-1);
 		let addressSlice = i.slice(indexLoc+5, indexX-1);
@@ -188,7 +189,23 @@ async function formatList(alerts) {
 			addressSlice = testForCommonLoc[0].split(':');
 			addressSlice = addressSlice[0];
 		}
-		let muniSlice = addressSlice.slice(addressSlice.length-7, addressSlice.length);
+		let muniSlice = '';
+	//	console.log(`Address slice - ${addressSlice}`);
+
+		if (cumbIndex) {
+	//		console.log(`cumbIndex - ${cumbIndex} is at ${i[cumbIndex]}`);
+			muniSlice = i.slice(cumbIndex-3, cumbIndex+4);
+		//	console.log(`Muni slice - ${muniSlice}`);
+		}
+
+		else {
+			if (addressSlice.includes('YORK')) { muniSlice = ['YC', 'MUTAID']}
+			if (addressSlice.includes('ADAM')) { muniSlice = ['AC', 'MUTAID']}
+			if (addressSlice.includes('PERR')) { muniSlice = ['PC', 'MUTAID']}
+			if (addressSlice.includes('FRAN')) { muniSlice = ['FC', 'MUTAID']}
+			if (addressSlice.includes('DAUP')) { muniSlice = ['DC', 'MUTAID']}
+		}
+	//	console.log(`Muni slice - ${muniSlice}`);
 		let addressSliceSplit = addressSlice.split(muniSlice);
 		addressSlice = addressSliceSplit[0];
 		addressSlice = addressSlice.slice(0, addressSlice.length-1);
@@ -446,12 +463,13 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.time}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
+
 				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
 				});
-
+		
 
 
 				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);

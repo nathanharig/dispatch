@@ -176,7 +176,8 @@ function municipalCodeMaker(){
 		'YC':	'York County',
 		'LN':	'Lancaster County',
 		'DC':	'Dauphin County',
-		'LE':	'Lebanon County'
+		'LE':	'Lebanon County',,
+		'FR': 'Franklin County'
 	}
 	return codes;
 
