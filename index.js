@@ -301,7 +301,7 @@ async function formatList(alerts) {
 			let messageCode = testCode[workingCode];
 
 			if (!testCode[workingCode]) {
-				messageCode = 'an EMS call';
+				messageCode = workingCode;
 			}
 			//console.log(`Message Code - ${messageCode}`);
 			if (testClass != '1' && messageCode.includes('arrest')) {
@@ -315,9 +315,14 @@ async function formatList(alerts) {
 				return 'DNS';
 			}
 			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} near ${cross} - ${time}`);
+
 			if(testCode[workingCode] && mcdCode[justMCD]) {
 				return message;
 			}
+			else if (messageCode && mcdCode[justMCD]){
+				return message;
+			}
+
 			else {
 				return (`an EMS call - ${time}`)
 			}
@@ -469,7 +474,7 @@ async function mainProgram() {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
 				});
-		
+
 
 
 				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
