@@ -304,7 +304,7 @@ async function formatList(alerts) {
 				messageCode = workingCode;
 			}
 			//console.log(`Message Code - ${messageCode}`);
-			if (testClass != '1' && messageCode.includes('arrest')) {
+			if (!messageCode.includes('AED')) {
 				messageCode = 'Reported expiration';
 			}
 			const justMCD = mcd;
