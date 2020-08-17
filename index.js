@@ -468,13 +468,13 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.time}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				/*
+				
 				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
 					}
 				});
-				*/
+
 
 
 				console.log(`${moment().format('MM/DD HH:mm')} ||-----|| ${dispatchMessage} // ${i.unit}\n\n`);
