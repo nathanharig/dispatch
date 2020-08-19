@@ -199,11 +199,11 @@ async function formatList(alerts) {
 		}
 
 		else {
-			if (addressSlice.includes('YORK')) { muniSlice = ['YC', 'MUTAID']}
-			if (addressSlice.includes('ADAM')) { muniSlice = ['AC', 'MUTAID']}
-			if (addressSlice.includes('PERR')) { muniSlice = ['PC', 'MUTAID']}
-			if (addressSlice.includes('FRAN')) { muniSlice = ['FC', 'MUTAID']}
-			if (addressSlice.includes('DAUP')) { muniSlice = ['DC', 'MUTAID']}
+			if (addressSlice.includes('YC')) { muniSlice = ['YC', 'MUTAID']}
+			if (addressSlice.includes('AC')) { muniSlice = ['AC', 'MUTAID']}
+			if (addressSlice.includes('PC')) { muniSlice = ['PC', 'MUTAID']}
+			if (addressSlice.includes('FC')) { muniSlice = ['FC', 'MUTAID']}
+			if (addressSlice.includes('DC')) { muniSlice = ['DC', 'MUTAID']}
 		}
 	//	console.log(`Muni slice - ${muniSlice}`);
 		let addressSliceSplit = addressSlice.split(muniSlice);
@@ -314,7 +314,12 @@ async function formatList(alerts) {
 			if (unit === 'PAGERA40' || unit === 'PAGERM40') {
 				return 'DNS';
 			}
-			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} near ${cross} - ${time}`);
+
+			if (cross !== ' ' || cross !== ' ') {
+				cross = `near ${cross}`;
+			}
+
+			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} - ${time}`);
 
 			if(testCode[workingCode] && mcdCode[justMCD]) {
 				return message;
@@ -468,7 +473,7 @@ async function mainProgram() {
 		if (!sentDispatch.includes(`${i.incidentNum}-${i.time}`)) {
 			let dispatchMessage = (`${i.incidentNum}: Dispatch- ${i.translated}`);
 			if (i.translated !== 'DNS') {
-				
+
 				Twitter.post('statuses/update', {status: dispatchMessage}, function(error, tweet, response) {
 					if (error) {
 						console.log(`Error- ${error} for ${dispatchMessage}`);
