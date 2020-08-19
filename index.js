@@ -315,11 +315,15 @@ async function formatList(alerts) {
 				return 'DNS';
 			}
 
-			if (cross !== ' ' || cross !== ' ') {
-				cross = `near ${cross}`;
+			if (cross.length > 2) {
+				cross = ` near ${cross}`;
+			}
+			else {
+				cross = ``;
 			}
 
-			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location} - ${time}`);
+
+			let message = (`${messageCode}, ${mcdCode[justMCD]}${alarm} ${location}${cross} - ${time}`);
 
 			if(testCode[workingCode] && mcdCode[justMCD]) {
 				return message;
