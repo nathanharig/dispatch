@@ -42,7 +42,7 @@ function makeCodes() {
 		'alarm commercial/high life': 'Reported automatic fire alarm',
 		'alarm co/gas': 'Reported carbon monoxide/gas alarm',
 		'alarm elevator': 'Reported elevator alarm',
-		'structure fire residental' : 'Reported structure fire',
+		'structure fire residential' : 'Reported structure fire',
 		'structure fire commercial' : 'Reported structure fire',
 		'structure fire high life' : 'Reported structure fire',
 		'structure fire mobile home' : 'Reported structure fire',
