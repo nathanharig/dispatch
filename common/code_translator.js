@@ -3,7 +3,7 @@ function makeCodes() {
 		'abdominal pain': 'DNS',//'a reported medical emergency'//'a reported patient with abdominal pain',
 		'allergic reaction': 'DNS',//'a reported allergic reaction',
 		'animal bite': 'Reported animal bite',
-		'assault': 'DNS',//'a reported assault',
+		'assault victim': 'DNS',//'a reported assault',
 		'back pain': 'DNS',//'a reported patient with back pain',
 		'breathing problem': 'DNS',//'a reported patient with difficulty breathing',
 		'burns': 'Reported injury involving a burn or explosion ',
