@@ -31,6 +31,7 @@ function makeCodes() {
 		'stabbing': 'DNS',
 		'stroke': 'DNS',//'a reported stroke',
 		'cva': 'DNS',//'a reported stroke',
+		'obvious/expected death': 'DNS'
 		'traffic / transportation incidents': 'Reported vehicle crash',
 		'traffic accident': 'Reported vehicle crash',
 		't/a': 'Reported vehicle crash',
