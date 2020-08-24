@@ -307,6 +307,12 @@ async function formatList(alerts) {
 			if (messageCode.includes('CARDIAC') && !messageCode.includes('AED')) {
 				messageCode = 'Reported expiration';
 			}
+
+			if (messageCode.includes('T/A')) {
+				messageCode = 'Reported vehicle crash';
+			}
+
+			
 			const justMCD = mcd;
 			if (messageCode === 'DNS') {
 				return 'DNS';
