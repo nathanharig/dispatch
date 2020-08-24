@@ -71,6 +71,7 @@ function makeCodes() {
 		't/a entrapment w/ fire small' : 'Reported vehicle crash with fire',
 		't/a veh vs bldg w/ injuries' : 'Reported auto/building collision',
 		't/a veh vs bldg no injuries' : 'Reported auto/building collision, no injuries reported',
+		't/a unk injuries': 'Reported vehicle crash',
 		'vehicle accident w/ hazmat' : 'Reported vehicle crash with hazmat',
 		'major incident' : 'Reported possible MCI',
 		'technical' : 'Reported technical rescue',
