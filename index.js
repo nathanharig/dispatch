@@ -239,7 +239,7 @@ async function formatList(alerts) {
 
 	function addressMinusNumbers(address, code) {
 		//console.log(`code- ${code}`);
-		if (address.includes('I 81') || /\D/.test(address[0]) || address.includes('I 76') || code.includes('T/A') || code.includes('FIRE')) {
+		if (address.includes('I 81') || /\D/.test(address[0]) || address.includes('I 76') || code.includes('T/A') || code.includes('A/A') || code.includes('FIRE')) {
 			//	console.log(`Address- ${address}`);
 			return address.trim();
 		}
