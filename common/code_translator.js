@@ -55,6 +55,8 @@ function makeCodes() {
 		'structure fire chimney fire' : 'Reported chimney fire',
 		'structure fire chimney' : 'Reported chimney fire',
 		'structure fire investigation' : 'Reported fire dept. investigation inside',
+		'structure gas leak inside' : 'Reported gas leak inside',
+		'structure gas leak outside' : 'Reported gas leak outside',
 		'structure gas leak' : 'Reported gas leak',
 		'structure chimney fire' : 'Reported chimney fire',
 		'structure investigation' : 'Reported fire dept. investigation inside',
