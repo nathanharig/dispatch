@@ -68,6 +68,8 @@ function makeCodes() {
 		'unk injuries' : 'Reported vehicle crash',
 		'injuries' : 'Reported vehicle crash',
 		'pedestrian struck' : 'Reported pedestrian struck',
+		't/a' : 'Reported vehicle crash',
+		'a/a entrapment/high mechanism' : 'Reported vehicle crash',
 		't/a entrapment/high mechanism' : 'Reported vehicle crash',
 		't/a entrapment w/ fire large' : 'Reported vehicle crash with fire',
 		't/a entrapment w/ fire small' : 'Reported vehicle crash with fire',
